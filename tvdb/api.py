@@ -28,7 +28,7 @@ class TvDbApi(object):
 
         data = json.dumps({'apikey': self._key})
         request = urllib.request.Request(
-            url=API_URL + 'login',
+            url=urllib.parse.urljoin(API_URL, 'login'),
             data=str.encode(data),
             headers={
                 'Accept': 'application/json',
@@ -49,22 +49,24 @@ class TvDbApi(object):
             'Authorization': 'Bearer {}'.format(self._token),
         }
 
-    def _get(self, url):
-        request = urllib.request.Request(url=API_URL + url, headers=self._headers())
+    def _get(self, url_format, *parameters):
+        safe_inputs = (urllib.parse.quote(param, safe='') for param in parameters)
+        url = urllib.parse.urljoin(API_URL, url_format.format(*safe_inputs))
+        request = urllib.request.Request(url=url, headers=self._headers())
         response = urllib.request.urlopen(request).read()
         loaded_response = json.loads(response.decode())
         assert 'errors' not in loaded_response
         return loaded_response
 
     def search(self, query):
-        return self._get(SEARCH.format(query))['data']
+        return self._get(SEARCH, query)['data']
 
     def series(self, series_id):
-        return self._get(SERIES.format(series_id))['data']
+        return self._get(SERIES, series_id)['data']
 
     def episodes(self, series_id):
         next_page = 1
         while next_page is not None:
-            page = self._get(EPISODES.format(series_id, next_page))
+            page = self._get(EPISODES, series_id, next_page)
             next_page = page['links']['next']
             yield from page['data']

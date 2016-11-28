@@ -50,6 +50,7 @@ class TvDbApi(object):
         }
 
     def _get(self, url_format, *parameters):
+        assert not any('/' in param for param in parameters)
         safe_inputs = (urllib.parse.quote(param, safe='') for param in parameters)
         url = urllib.parse.urljoin(API_URL, url_format.format(*safe_inputs))
         request = urllib.request.Request(url=url, headers=self._headers())

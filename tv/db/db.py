@@ -10,32 +10,19 @@ import tvdb.api
 
 _CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), '.credentials')
 
-EPISODE_REPLACE = '''
-    INSERT INTO episode
-    (id, series_id, season, episode, title, air_date)
-    VALUES (%s, %s, %s, %s, %s, %s)
-    ON DUPLICATE KEY UPDATE season=%s, episode=%s, title=%s, air_date=%s
-'''
-
-SERIES_REPLACE = '''
-    INSERT INTO series
-    (id, name, air_time, episode_length, last_updated, network)
-    VALUES (%s, %s, %s, %s, %s, %s)
-    ON DUPLICATE KEY UPDATE name=%s, air_time=%s, episode_length=%s, last_updated=%s, network=%s
-'''
 
 INSERT_NEW_UNSEEN = '''
     INSERT INTO unseen
-    (user_id, episode_id)
-    SELECT user_id, %s
+    (user_id, episode_id, subscription_id)
+    SELECT user_id, %s, id
     FROM subscription
     WHERE series_id = %s
 '''
 
 INSERT_UNSEEN_FOR_SUBSCRIPTION = '''
     INSERT INTO UNSEEN
-    (user_id, episode_id)
-    SELECT %s, id
+    (user_id, episode_id, subscription_id)
+    SELECT %s, id, %s
     FROM episode
     WHERE series_id = %s
 '''
@@ -63,6 +50,15 @@ class ShowDatabase(object):
             cursor.execute('SELECT id FROM episode WHERE series_id = %s', (series_id,))
             return {row[0] for row in cursor.fetchall()}
 
+    def _insert_update(self, cursor, table, id, **fields):
+        query = 'INSERT INTO {} (id, {}) VALUES (%s, {}) ON DUPLICATE KEY UPDATE {}'.format(
+            table,
+            ', '.join(fields.keys()),
+            ', '.join('%s' for _ in fields),
+            ', '.join(map('{}=%s'.format, fields.keys())),
+        )
+        cursor.execute(query, (id,) + tuple(fields.values()) + tuple(fields.values()))
+
     def update_series(self, series_id, force=False):
         series = self._api.series(series_id)
         last_update = self._get_last_updated(series_id)
@@ -72,35 +68,30 @@ class ShowDatabase(object):
         current_episodes = self._episode_ids(series_id)
         new_episodes = []
         with self._connection.cursor() as cursor:
-            cursor.execute(SERIES_REPLACE, (
-                series_id,
-                series['seriesName'],
-                datetime.datetime.strptime(series['airsTime'], '%I:%M %p').time(),
-                int(series['runtime']),
-                int(series['lastUpdated']),
-                series['network'],
-                series['seriesName'],
-                datetime.datetime.strptime(series['airsTime'], '%I:%M %p').time(),
-                int(series['runtime']),
-                int(series['lastUpdated']),
-                series['network'],
-            ))
+            self._insert_update(
+                cursor=cursor,
+                table='series',
+                id=series_id,
+                name=series['seriesName'],
+                air_time=datetime.datetime.strptime(series['airsTime'], '%I:%M %p').time(),
+                episode_length=int(series['runtime']),
+                last_updated=int(series['lastUpdated']),
+                network=series['network'],
+            )
             for episode in self._api.episodes(series_id):
                 if not episode['firstAired']:
                     continue
                 episode_id = int(episode['id'])
-                cursor.execute(EPISODE_REPLACE, (
-                    episode_id,
-                    series_id,
-                    int(episode['airedSeason']),
-                    int(episode['airedEpisodeNumber']),
-                    episode['episodeName'],
-                    datetime.datetime.strptime(episode['firstAired'], '%Y-%m-%d').date(),
-                    int(episode['airedSeason']),
-                    int(episode['airedEpisodeNumber']),
-                    episode['episodeName'],
-                    datetime.datetime.strptime(episode['firstAired'], '%Y-%m-%d').date(),
-                ))
+                self._insert_update(
+                    cursor=cursor,
+                    table='episode',
+                    id=episode_id,
+                    series_id=series_id,
+                    season=int(episode['airedSeason']),
+                    episode=int(episode['airedEpisodeNumber']),
+                    title=episode['episodeName'],
+                    air_date=datetime.datetime.strptime(episode['firstAired'], '%Y-%m-%d').date(),
+                )
                 if episode_id not in current_episodes:
                     new_episodes.append((episode_id, series_id))
             cursor.executemany(INSERT_NEW_UNSEEN, new_episodes)
@@ -111,5 +102,5 @@ class ShowDatabase(object):
         self.update_series(series_id)
         with self._connection.cursor() as cursor:
             cursor.execute(SUBSCRIPTION_INSERT, (user_id, series_id))
-            cursor.execute(INSERT_UNSEEN_FOR_SUBSCRIPTION, (user_id, series_id))
+            cursor.execute(INSERT_UNSEEN_FOR_SUBSCRIPTION, (user_id, cursor.lastrowid, series_id))
         self._connection.commit()

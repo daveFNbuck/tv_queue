@@ -63,11 +63,11 @@ class TvDbApi(object):
         return self._get(SEARCH, query)['data']
 
     def series(self, series_id):
-        return self._get(SERIES, series_id)['data']
+        return self._get(SERIES, str(series_id))['data']
 
     def episodes(self, series_id):
         next_page = 1
         while next_page is not None:
-            page = self._get(EPISODES, series_id, next_page)
+            page = self._get(EPISODES, str(series_id), str(next_page))
             next_page = page['links']['next']
             yield from page['data']

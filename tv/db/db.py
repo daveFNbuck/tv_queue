@@ -29,6 +29,18 @@ INSERT_UNSEEN_FOR_SUBSCRIPTION = '''
 
 SUBSCRIPTION_INSERT = 'INSERT INTO subscription (user_id, series_id) VALUES (%s, %s)'
 
+WATCH = 'DELETE FROM unseen WHERE user_id = %s AND episode_id = %s'
+
+GET_EPISODE_DATA = 'SELECT series_id, season, episode FROM episode WHERE id = %s'
+EPISODES_UNTIL = '''
+    SELECT id FROM episode
+    WHERE
+        series_id = %s AND (
+            season < %s OR
+            (season = %s AND episode <= %s)
+        )
+'''
+
 
 class ShowDatabase(object):
     def __init__(self):
@@ -103,4 +115,18 @@ class ShowDatabase(object):
         with self._connection.cursor() as cursor:
             cursor.execute(SUBSCRIPTION_INSERT, (user_id, series_id))
             cursor.execute(INSERT_UNSEEN_FOR_SUBSCRIPTION, (user_id, cursor.lastrowid, series_id))
+        self._connection.commit()
+
+    def watch(self, user_id, episode_id):
+        with self._connection.cursor() as cursor:
+            cursor.execute(WATCH, (user_id, episode_id))
+        self._connection.commit()
+
+    def watch_until(self, user_id, episode_id):
+        with self._connection.cursor() as cursor:
+            cursor.execute(GET_EPISODE_DATA, (episode_id,))
+            series_id, season, episode = cursor.fetchone()
+            cursor.execute(EPISODES_UNTIL, (series_id, season, season, episode))
+            episode_ids = cursor.fetchall()
+            cursor.executemany(WATCH, ((user_id, episode_id) for episode_id in episode_ids))
         self._connection.commit()

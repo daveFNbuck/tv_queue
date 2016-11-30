@@ -130,3 +130,18 @@ class ShowDatabase(object):
             episode_ids = cursor.fetchall()
             cursor.executemany(WATCH, ((user_id, episode_id) for episode_id in episode_ids))
         self._connection.commit()
+
+    def user_names(self):
+        with self._connection.cursor() as cursor:
+            cursor.execute('SELECT name FROM user ORDER BY id')
+            return [name for name, in cursor.fetchall()]
+
+    def get_user_id(self, username):
+        with self._connection.cursor() as cursor:
+            cursor.execute('SELECT id FROM user WHERE name = %s', username)
+            return cursor.fetchone()[0]
+
+    def get_user_name(self, uid):
+        with self._connection.cursor() as cursor:
+            cursor.execute('SELECT name FROM user WHERE id = %s', uid)
+            return cursor.fetchone()[0]

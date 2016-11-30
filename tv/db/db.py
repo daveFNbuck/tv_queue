@@ -85,7 +85,7 @@ class ShowDatabase(object):
                 table='series',
                 row_id=series_id,
                 name=series['seriesName'],
-                air_time=datetime.datetime.strptime(series['airsTime'], '%I:%M %p').time(),
+                air_time=datetime.datetime.strptime(series['airsTime'] or '12:01 PM', '%I:%M %p').time(),
                 episode_length=int(series['runtime']),
                 last_updated=int(series['lastUpdated']),
                 network=series['network'],
@@ -114,8 +114,16 @@ class ShowDatabase(object):
     def subscribe(self, user_id, series_id):
         self.update_series(series_id)
         with self._connection.cursor() as cursor:
-            cursor.execute(SUBSCRIPTION_INSERT, (user_id, series_id))
+            try:
+                cursor.execute(SUBSCRIPTION_INSERT, (user_id, series_id))
+            except pymysql.err.IntegrityError:
+                return
             cursor.execute(INSERT_UNSEEN_FOR_SUBSCRIPTION, (user_id, cursor.lastrowid, series_id))
+        self._connection.commit()
+
+    def unsubscribe(self, user_id, series_id):
+        with self._connection.cursor() as cursor:
+            cursor.execute('DELETE FROM subscription WHERE user_id = %s AND series_id = %s', (user_id, series_id))
         self._connection.commit()
 
     def watch(self, user_id, episode_id):
@@ -146,3 +154,8 @@ class ShowDatabase(object):
         with self._connection.cursor() as cursor:
             cursor.execute('SELECT name FROM user WHERE id = %s', uid)
             return cursor.fetchone()[0]
+
+    def get_subscriptions(self, uid):
+        with self._connection.cursor() as cursor:
+            cursor.execute('SELECT series_id FROM subscription WHERE user_id = %s', uid)
+            return [user_id for user_id, in cursor.fetchall()]

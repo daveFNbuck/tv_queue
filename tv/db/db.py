@@ -40,6 +40,15 @@ EPISODES_UNTIL = '''
         )
 '''
 
+GET_SUBSCRIPTION_DATA = '''
+    SELECT series_id, name, banner
+    FROM
+        subscription
+        JOIN series ON subscription.series_id = series.id
+    WHERE subscription.user_id = %s
+    ORDER BY name
+'''
+
 
 class ShowDatabase(object):
     def __init__(self):
@@ -89,6 +98,7 @@ class ShowDatabase(object):
                 episode_length=int(series['runtime']),
                 last_updated=int(series['lastUpdated']),
                 network=series['network'],
+                banner=series['banner'],
             )
             for episode in self._api.episodes(series_id):
                 if not episode['firstAired']:
@@ -110,6 +120,13 @@ class ShowDatabase(object):
             cursor.executemany(INSERT_NEW_UNSEEN, new_episodes)
 
         self._connection.commit()
+
+    def update_all_series(self, force=False):
+        with self._connection.cursor() as cursor:
+            cursor.execute('SELECT id FROM series')
+            series_ids = cursor.fetchall()
+        for series_id, in series_ids:
+            self.update_series(series_id, force)
 
     def subscribe(self, user_id, series_id):
         self.update_series(series_id)
@@ -155,7 +172,20 @@ class ShowDatabase(object):
             cursor.execute('SELECT name FROM user WHERE id = %s', uid)
             return cursor.fetchone()[0]
 
-    def get_subscriptions(self, uid):
+    def get_subscription_series_ids(self, uid):
         with self._connection.cursor() as cursor:
             cursor.execute('SELECT series_id FROM subscription WHERE user_id = %s', uid)
             return [user_id for user_id, in cursor.fetchall()]
+
+    def get_subscription_data(self, uid):
+        with self._connection.cursor() as cursor:
+            cursor.execute(GET_SUBSCRIPTION_DATA, (uid,))
+            return [
+                {
+                    'seriesName': name,
+                    'id': series_id,
+                    'banner': banner,
+                    'subscribed': True,
+                }
+                for series_id, name, banner in cursor.fetchall()
+            ]

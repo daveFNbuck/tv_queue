@@ -1,10 +1,15 @@
-from flask import Flask, render_template
-from flask import make_response, request, redirect
+import flask
+from flask import request
 
 from tv.db.db import ShowDatabase
 from tvdb.api import TvDbApi
 
-app = Flask(__name__)
+app = flask.Flask(__name__)
+
+
+def render_template(*args, **kwargs):
+    kwargs.update(user_data())
+    return flask.render_template(*args, **kwargs)
 
 
 def user_id():
@@ -24,12 +29,12 @@ def user_data():
 
 @app.route('/')
 def queue():
-    return render_template('queue.html', **user_data())
+    return render_template('queue.html')
 
 
 @app.route('/login/<username>')
 def login(username):
-    resp = make_response(redirect('/'))
+    resp = flask.make_response(flask.redirect('/'))
     resp.set_cookie('uid', str(ShowDatabase().get_user_id(username)))
     return resp
 
@@ -39,10 +44,10 @@ def search():
     api = TvDbApi()
     query = request.args['q']
     results = api.search(query) if query else []
-    subscriptions = set(ShowDatabase().get_subscriptions(user_id()))
+    subscribed_series_ids = set(ShowDatabase().get_subscription_series_ids(user_id()))
     for result in results:
-        result['subscribed'] = result['id'] in subscriptions
-    return render_template('search.html', results=results, **user_data())
+        result['subscribed'] = result['id'] in subscribed_series_ids
+    return render_template('search.html', results=results)
 
 
 @app.route('/subscribe')
@@ -57,3 +62,9 @@ def unsubscribe():
     series_id = request.args['series_id']
     ShowDatabase().unsubscribe(user_id(), int(series_id))
     return series_id
+
+
+@app.route('/subscriptions')
+def subscriptions():
+    data = ShowDatabase().get_subscription_data(user_id())
+    return render_template('search.html', results=data)

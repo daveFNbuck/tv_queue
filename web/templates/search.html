@@ -15,9 +15,11 @@
             <h1 >{{ result.seriesName }}</h1>
         </div>
 
-        <div class="well episodeDescription">
-            {{ result.overview }}
-        </div>
+        {% if result.overview %}
+            <div class="well episodeDescription">
+                {{ result.overview }}
+            </div>
+        {% endif %}
 
         {% if result.subscribed %}
         <button class="btn btn-danger subscription" data-series-id="{{ result.id }}">Unsubscribe</button>

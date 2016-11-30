@@ -49,6 +49,16 @@ GET_SUBSCRIPTION_DATA = '''
     ORDER BY name
 '''
 
+IGNORED_SORTING_WORDS = ['A', 'AN', 'THE']
+
+
+def _series_key(series_tuple):
+    name = series_tuple[1].upper()
+    for ignored_word in IGNORED_SORTING_WORDS:
+        if name.startswith(ignored_word + ' '):
+            name = name[len(ignored_word) + 1:]
+    return name
+
 
 class ShowDatabase(object):
     def __init__(self):
@@ -95,7 +105,7 @@ class ShowDatabase(object):
                 row_id=series_id,
                 name=series['seriesName'],
                 air_time=datetime.datetime.strptime(series['airsTime'] or '12:01 AM', '%I:%M %p').time(),
-                episode_length=int(series['runtime']),
+                episode_length=int(series['runtime'] or '0'),
                 last_updated=int(series['lastUpdated']),
                 network=series['network'],
                 banner=series['banner'],
@@ -187,5 +197,5 @@ class ShowDatabase(object):
                     'banner': banner,
                     'subscribed': True,
                 }
-                for series_id, name, banner in cursor.fetchall()
+                for series_id, name, banner in sorted(cursor.fetchall(), key=_series_key)
             ]

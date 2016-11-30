@@ -2,3 +2,7 @@
     width: 758px;
     margin: 0 auto;
 }
+
+.btn.subscription {
+    width: 100%;
+}

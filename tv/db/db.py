@@ -103,6 +103,7 @@ class ShowDatabase(object):
                     episode=int(episode['airedEpisodeNumber']),
                     title=episode['episodeName'],
                     air_date=datetime.datetime.strptime(episode['firstAired'], '%Y-%m-%d').date(),
+                    overview=episode['overview'],
                 )
                 if episode_id not in current_episodes:
                     new_episodes.append((episode_id, series_id))

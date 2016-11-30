@@ -2,7 +2,8 @@ function handle_subscription(series_id) {
     $('button[data-series-id=' + series_id + ']').
         text('Unsubscribe').
         addClass('btn-danger').
-        removeClass('btn-success');
+        removeClass('btn-success').
+        removeClass('disabled');
 }
 
 function fail_subscription() {
@@ -13,7 +14,8 @@ function handle_unsubscription(series_id) {
     $('button[data-series-id=' + series_id + ']').
         text('Subscribe').
         addClass('btn-success').
-        removeClass('btn-danger');
+        removeClass('btn-danger').
+        removeClass('disabled');
 }
 
 function fail_unsubscription() {
@@ -27,6 +29,7 @@ $(function() {
     });
 
     $('button.subscription').click(function() {
+        $(this).addClass('disabled');
         var series_id = this.attributes['data-series-id'].nodeValue;
         var data = {'series_id': series_id}
         if (this.textContent == "Unsubscribe") {

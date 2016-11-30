@@ -85,7 +85,7 @@ class ShowDatabase(object):
                 table='series',
                 row_id=series_id,
                 name=series['seriesName'],
-                air_time=datetime.datetime.strptime(series['airsTime'] or '12:01 PM', '%I:%M %p').time(),
+                air_time=datetime.datetime.strptime(series['airsTime'] or '12:01 AM', '%I:%M %p').time(),
                 episode_length=int(series['runtime']),
                 last_updated=int(series['lastUpdated']),
                 network=series['network'],

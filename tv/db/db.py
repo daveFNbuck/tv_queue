@@ -1,5 +1,4 @@
 import datetime
-import itertools
 import json
 import os
 
@@ -62,14 +61,15 @@ class ShowDatabase(object):
             cursor.execute('SELECT id FROM episode WHERE series_id = %s', (series_id,))
             return {row[0] for row in cursor.fetchall()}
 
-    def _insert_update(self, cursor, table, id, **fields):
+    @staticmethod
+    def _insert_update(cursor, table, row_id, **fields):
         query = 'INSERT INTO {} (id, {}) VALUES (%s, {}) ON DUPLICATE KEY UPDATE {}'.format(
             table,
             ', '.join(fields.keys()),
             ', '.join('%s' for _ in fields),
             ', '.join(map('{}=%s'.format, fields.keys())),
         )
-        cursor.execute(query, (id,) + tuple(fields.values()) + tuple(fields.values()))
+        cursor.execute(query, (row_id,) + tuple(fields.values()) + tuple(fields.values()))
 
     def update_series(self, series_id, force=False):
         series = self._api.series(series_id)
@@ -83,7 +83,7 @@ class ShowDatabase(object):
             self._insert_update(
                 cursor=cursor,
                 table='series',
-                id=series_id,
+                row_id=series_id,
                 name=series['seriesName'],
                 air_time=datetime.datetime.strptime(series['airsTime'], '%I:%M %p').time(),
                 episode_length=int(series['runtime']),
@@ -97,7 +97,7 @@ class ShowDatabase(object):
                 self._insert_update(
                     cursor=cursor,
                     table='episode',
-                    id=episode_id,
+                    row_id=episode_id,
                     series_id=series_id,
                     season=int(episode['airedSeason']),
                     episode=int(episode['airedEpisodeNumber']),

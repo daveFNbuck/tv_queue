@@ -29,13 +29,20 @@ $(function() {
     });
 
     $('button.subscription').click(function() {
-        $(this).addClass('disabled');
         var series_id = this.attributes['data-series-id'].nodeValue;
         var data = {'series_id': series_id}
         if (this.textContent == "Unsubscribe") {
-            $.ajax('/unsubscribe', {'success': handle_unsubscription, 'error': fail_unsubscription, 'data': data});
+            //$.ajax('/unsubscribe', {'success': handle_unsubscription, 'error': fail_unsubscription, 'data': data});
+            $('.modal[for_series=' + series_id + ']').modal()
         } else if (this.textContent == "Subscribe") {
             $.ajax('/subscribe', {'success': handle_subscription, 'error': fail_subscription, 'data': data})
         }
+    });
+
+    $('.modal.unsubscribe .btn-danger').click(function() {
+        var series_id = this.attributes['data-series-id'].nodeValue;
+        var data = {'series_id': series_id};
+        $.ajax('/unsubscribe', {'success': handle_unsubscription, 'error': fail_unsubscription, 'data': data});
+        $('.modal').modal('hide');
     });
 });

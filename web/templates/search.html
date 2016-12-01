@@ -27,6 +27,24 @@
         <button class="btn btn-success subscription" data-series-id="{{ result.id }}">Subscribe</button>
         {% endif %}
     </div>
+
+    <div class="modal fade unsubscribe" tabindex="-1" role="dialog" for_series="{{ result.id }}">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Unsubscribe from {{ result.seriesName }}?</h4>
+          </div>
+          <div class="modal-body">
+            <p>If you unsubscribe, you will permanently lose all record of which episodes you've watched.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-danger" data-series-id="{{ result.id }}">Unsubscribe</button>
+          </div>
+        </div><!-- /.modal-content -->
+      </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
     {% if not loop.last %}
         <hr>
     {% endif %}

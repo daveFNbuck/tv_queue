@@ -121,7 +121,7 @@ class ShowDatabase(object):
                     series_id=series_id,
                     season=int(episode['airedSeason']),
                     episode=int(episode['airedEpisodeNumber']),
-                    title=episode['episodeName'],
+                    title=episode['episodeName'][:50] if episode['episodeName'] else None,
                     air_date=datetime.datetime.strptime(episode['firstAired'], '%Y-%m-%d').date(),
                     overview=episode['overview'],
                 )

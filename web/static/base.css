@@ -19,3 +19,8 @@
 .clickable {
     cursor: pointer;
 }
+
+span.glyphicon-record {
+    color: red;
+    top: 2px;
+}

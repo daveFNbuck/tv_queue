@@ -90,3 +90,8 @@ def watch_until():
     episode_id = request.args['episode_id']
     ShowDatabase().watch_until(user_id(), int(episode_id))
     return episode_id
+
+
+@app.route('/preview')
+def preview():
+    return render_template('preview.html', **ShowDatabase().get_preview(user_id(), days=7))

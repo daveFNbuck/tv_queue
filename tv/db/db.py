@@ -2,7 +2,6 @@ import datetime
 import json
 
 import collections
-import itertools
 import os
 
 import pymysql
@@ -53,7 +52,7 @@ GET_SUBSCRIPTION_DATA = '''
 '''
 
 GET_UNSEEN = '''
-    SELECT episode_id, title, overview, banner, name, series_id, season, episode, air_date, air_time
+    SELECT episode_id, title, overview, banner, name, series_id, season, episode, air_date, air_time, episode_length
     FROM
         unseen
         JOIN episode ON episode_id = episode.id
@@ -72,9 +71,23 @@ Unseen = collections.namedtuple('Unseen', (
     'episode',
     'air_date',
     'air_time',
+    'episode_length',
 ))
 
 IGNORED_SORTING_WORDS = ['A', 'AN', 'THE']
+
+
+def make_unseen(row):
+    start = Unseen(*row)
+    return start._replace(air_time=(datetime.datetime(2000, 1, 1) + start.air_time).time())
+
+
+def _start_time(episode):
+    return datetime.datetime.combine(episode.air_date, episode.air_time)
+
+
+def _end_time(episode):
+    return _start_time(episode) + datetime.timedelta(minutes=episode.episode_length)
 
 
 def _sorting_key(title):
@@ -232,7 +245,7 @@ class ShowDatabase(object):
     def get_unseen_episodes(self, uid):
         with self._connection.cursor() as cursor:
             cursor.execute(GET_UNSEEN, uid)
-            return itertools.starmap(Unseen, cursor.fetchall())
+            return map(make_unseen, cursor.fetchall())
 
     def get_queued_by_series(self, uid):
         if uid is None:
@@ -240,7 +253,7 @@ class ShowDatabase(object):
         now = datetime.datetime.now()
         series = collections.defaultdict(list)
         for unseen in self.get_unseen_episodes(uid):
-            if datetime.datetime.combine(unseen.air_date, datetime.time()) + unseen.air_time >= now:
+            if _end_time(unseen) > now:
                 continue
             series[(_sorting_key(unseen.series_name), unseen.series_id)].append(unseen)
         return [
@@ -253,6 +266,43 @@ class ShowDatabase(object):
             }
             for _, group in sorted(series.items())
         ]
+
+    def get_preview(self, uid, days):
+        now = datetime.datetime.now()
+        episodes = [
+            episode for episode in self.get_unseen_episodes(uid)
+            if _end_time(episode) > now
+        ]
+        episodes_now = [episode for episode in episodes if _start_time(episode) <= now]
+        episodes_now.sort(key=_start_time)
+        episodes_later = (episode for episode in episodes if _start_time(episode) > now)
+
+        preview_list = [[] for _ in range(days)]
+        for episode in sorted(episodes_later, key=_start_time):
+            num_days = (_start_time(episode).date() - now.date()).days
+            if num_days >= days:
+                break
+            preview_list[num_days].append(episode)
+
+        tomorrow = now.date() + datetime.timedelta(days=1)
+
+        def day_name(episode):
+            start_date = _start_time(episode).date()
+            if start_date == now.date():
+                return 'Today'
+            elif start_date == tomorrow:
+                return 'Tomorrow'
+            else:
+                return _start_time(episode).strftime('%A')
+
+        preview_days = [
+            {
+                'day': day_name(day[0]),
+                'episodes': day,
+            }
+            for day in preview_list if day
+        ]
+        return {'recording': episodes_now, 'preview': preview_days}
 
     def num_queued(self, uid):
         if uid is None:

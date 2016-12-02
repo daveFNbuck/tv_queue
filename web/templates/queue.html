@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block body %}
     {% for series in queued_series %}
-        <div class="series">
+        <div class="series centered">
             {% if series.banner %}
             <div class="episodeBanner">
                 <h1><img src="http://thetvdb.com/banners/{{ series.banner }}" alt="{{ series.name }}" title="{{ series.name }}"></h1>

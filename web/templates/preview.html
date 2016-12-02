@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+    {% macro episodes(label, episode_list) %}
+        <div class="day centered">
+            <ul class="list-group">
+                <li class="list-group-item active {{ label.lower() }}">{{ label }}</li>
+                {% for episode in episode_list %}
+                    <li class="list-group-item">
+                        <span class="badge">{{ episode.air_time.strftime('%I:%M%p').lower().lstrip('0') }}</span>
+                        {{ episode.series_name }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endmacro %}
+
+
+{% block body %}
+    {% if recording %}
+        {{ episodes("Recording", recording) }}
+    {% endif %}
+
+    {% for day in preview %}
+        {{ episodes(day.day, day.episodes) }}
+    {% endfor %}
+{% endblock %}
+
+{% block css %}
+    <link href="/static/preview.css" rel="stylesheet">
+{% endblock %}

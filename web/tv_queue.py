@@ -28,8 +28,15 @@ def user_data():
 
 
 @app.route('/')
+@app.route('/queue')
 def queue():
-    return render_template('queue.html')
+    queued_series = ShowDatabase().get_queued_by_series(user_id())
+    return render_template(
+        'queue.html',
+        queued_series=queued_series,
+        num_series=len(queued_series),
+        num_episodes=sum(series['num_episodes'] for series in queued_series),
+    )
 
 
 @app.route('/login/<username>')
@@ -68,3 +75,17 @@ def unsubscribe():
 def subscriptions():
     data = ShowDatabase().get_subscription_data(user_id())
     return render_template('search.html', results=data)
+
+
+@app.route('/watch')
+def watch():
+    episode_id = request.args['episode_id']
+    ShowDatabase().watch(user_id(), int(episode_id))
+    return episode_id
+
+
+@app.route('/watchuntil')
+def watch_until():
+    episode_id = request.args['episode_id']
+    ShowDatabase().watch_until(user_id(), int(episode_id))
+    return episode_id

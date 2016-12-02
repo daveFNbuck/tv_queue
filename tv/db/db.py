@@ -1,5 +1,8 @@
 import datetime
 import json
+
+import collections
+import itertools
 import os
 
 import pymysql
@@ -49,15 +52,41 @@ GET_SUBSCRIPTION_DATA = '''
     ORDER BY name
 '''
 
+GET_UNSEEN = '''
+    SELECT episode_id, title, overview, banner, name, series_id, season, episode, air_date, air_time
+    FROM
+        unseen
+        JOIN episode ON episode_id = episode.id
+        JOIN series ON series_id = series.id
+    WHERE user_id = %s
+'''
+
+Unseen = collections.namedtuple('Unseen', (
+    'episode_id',
+    'episode_title',
+    'overview',
+    'series_banner',
+    'series_name',
+    'series_id',
+    'season',
+    'episode',
+    'air_date',
+    'air_time',
+))
+
 IGNORED_SORTING_WORDS = ['A', 'AN', 'THE']
 
 
-def _series_key(series_tuple):
-    name = series_tuple[1].upper()
+def _sorting_key(title):
+    title = title.upper()
     for ignored_word in IGNORED_SORTING_WORDS:
-        if name.startswith(ignored_word + ' '):
-            name = name[len(ignored_word) + 1:]
-    return name
+        if title.startswith(ignored_word + ' '):
+            title = title[len(ignored_word) + 1:]
+    return title
+
+
+def _series_key(series_tuple):
+    return _sorting_key(series_tuple[1])
 
 
 class ShowDatabase(object):
@@ -199,3 +228,26 @@ class ShowDatabase(object):
                 }
                 for series_id, name, banner in sorted(cursor.fetchall(), key=_series_key)
             ]
+
+    def get_unseen_episodes(self, uid):
+        with self._connection.cursor() as cursor:
+            cursor.execute(GET_UNSEEN, uid)
+            return itertools.starmap(Unseen, cursor.fetchall())
+
+    def get_queued_by_series(self, uid):
+        now = datetime.datetime.now()
+        series = collections.defaultdict(list)
+        for unseen in self.get_unseen_episodes(uid):
+            if datetime.datetime.combine(unseen.air_date, datetime.time()) + unseen.air_time >= now:
+                continue
+            series[(_sorting_key(unseen.series_name), unseen.series_id)].append(unseen)
+        return [
+            {
+                'name': group[0].series_name,
+                'id': group[0].series_id,
+                'banner': group[0].series_banner,
+                'num_episodes': len(group),
+                'episodes': list(sorted(group, key=lambda episode: (episode.season, episode.episode))),
+            }
+            for _, group in sorted(series.items())
+        ]

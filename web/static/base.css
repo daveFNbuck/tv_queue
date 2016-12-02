@@ -3,6 +3,19 @@
     margin: 0 auto;
 }
 
+.series {
+    width: 758px;
+    margin: 0 auto;
+}
+
 .btn.subscription {
     width: 100%;
+}
+
+.btn.queue {
+    width: 100%;
+}
+
+.clickable {
+    cursor: pointer;
 }

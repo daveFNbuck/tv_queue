@@ -1,3 +1,55 @@
 {% extends "base.html" %}
 {% block body %}
+    {% for series in queued_series %}
+        <div class="series">
+            {% if series.banner %}
+            <div class="episodeBanner">
+                <h1><img src="http://thetvdb.com/banners/{{ series.banner }}" alt="{{ series.name }}" title="{{ series.name }}"></h1>
+            </div>
+            {% endif %}
+            {% if series.banner %}
+            <div class="episodeTitle hidden">
+            {% else %}
+            <div class="episodeTitle">
+            {% endif %}
+                <h1 >{{ series.name }}</h1>
+            </div>
+
+            <button class="btn btn-info queue" type="button" data-toggle="collapse" data-target="#s_{{ series.id }}" aria-expanded="false" aria-controls="s_{{ series.id }}">
+                <span class="badge" >{{ series.num_episodes }}</span>
+                <span class="episode-label">episode{% if series.num_episodes != 1 %}s{% endif %}</span>
+            </button>
+            <div class="collapse episodes" id="s_{{ series.id }}">
+            {% for episode in series.episodes %}
+                <div class="panel panel-info">
+                    <div class="panel-heading episode clickable" data-collapse="ep_{{ episode.episode_id }}">
+                        <span class="badge">S{{ episode.season }}E{{ episode.episode }}</span>
+                        {{ episode.episode_title }}
+                    </div>
+                    <div id="ep_{{ episode.episode_id }}" class="collapse">
+                        {% if episode.overview %}
+                            <div class="panel-body">
+                                {{ episode.overview }}
+                            </div>
+                        {% endif %}
+                        <div class="panel-footer">
+                            <button class="btn btn-success watch" data-episode="{{ episode.episode_id }}">Watched</button>
+                            {% if not loop.first %}
+                            <button class="btn btn-info watch-until" data-episode="{{ episode.episode_id }}">Watched until this episode</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
+
+{% block js %}
+    <script src="/static/queue.js"></script>
+{% endblock %}
+
+{% block css %}
+    <link href="/static/queue.css" rel="stylesheet">
 {% endblock %}

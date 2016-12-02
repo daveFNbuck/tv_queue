@@ -8,24 +8,21 @@ app = flask.Flask(__name__)
 
 
 def render_template(*args, **kwargs):
-    kwargs.update(user_data())
+    db = ShowDatabase()
+    uid = user_id()
+    username = db.get_user_name(uid) if uid else None
+    kwargs.update({
+        'users': db.user_names(),
+        'user': username,
+        'num_queued': db.num_queued(uid),
+        'num_recording': db.num_recording(uid),
+    })
     return flask.render_template(*args, **kwargs)
 
 
 def user_id():
     cookie = request.cookies.get('uid')
     return int(cookie) if isinstance(cookie, str) else cookie
-
-
-def user_data():
-    db = ShowDatabase()
-    uid = user_id()
-    username = db.get_user_name(uid) if uid else None
-    return {
-        'users': db.user_names(),
-        'user': username,
-        'num_queued': db.num_queued(uid),
-    }
 
 
 @app.route('/')

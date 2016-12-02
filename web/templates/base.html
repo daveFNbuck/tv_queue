@@ -38,7 +38,12 @@
           {% if num_queued > -1 %}
             <span class="badge num-queued">{{ num_queued }}</span></a></li>
           {% endif %}
-        <li><a href="/preview">Coming Up</a></li>
+        <li><a href="/preview">
+          Coming Up
+          {% if num_recording > 0 %}
+            <span class="glyphicon glyphicon-record"></span>
+          {% endif %}
+        </a></li>
         <li><a href="/subscriptions">Subscriptions</a></li>
       </ul>
       <form class="navbar-form navbar-left" action="search" method="get">

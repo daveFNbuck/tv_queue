@@ -308,3 +308,7 @@ class ShowDatabase(object):
         if uid is None:
             return -1
         return sum(series['num_episodes'] for series in self.get_queued_by_series(uid))
+
+    def num_recording(self, uid):
+        now = datetime.datetime.now()
+        return sum(_start_time(episode) <= now <= _end_time(episode) for episode in self.get_unseen_episodes(uid))

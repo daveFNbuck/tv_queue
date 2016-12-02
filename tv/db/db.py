@@ -235,6 +235,8 @@ class ShowDatabase(object):
             return itertools.starmap(Unseen, cursor.fetchall())
 
     def get_queued_by_series(self, uid):
+        if uid is None:
+            return []
         now = datetime.datetime.now()
         series = collections.defaultdict(list)
         for unseen in self.get_unseen_episodes(uid):
@@ -251,3 +253,8 @@ class ShowDatabase(object):
             }
             for _, group in sorted(series.items())
         ]
+
+    def num_queued(self, uid):
+        if uid is None:
+            return -1
+        return sum(series['num_episodes'] for series in self.get_queued_by_series(uid))

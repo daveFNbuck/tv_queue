@@ -33,7 +33,11 @@
     <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
       <ul class="nav navbar-nav">
-        <li><a href="/queue">Queue</a></li>
+        <li><a href="/queue">
+          Queue
+          {% if num_queued > -1 %}
+            <span class="badge num-queued">{{ num_queued }}</span></a></li>
+          {% endif %}
         <li><a href="#">Coming Up</a></li>
         <li><a href="/subscriptions">Subscriptions</a></li>
       </ul>

@@ -24,6 +24,7 @@ def user_data():
     return {
         'users': db.user_names(),
         'user': username,
+        'num_queued': db.num_queued(uid),
     }
 
 

@@ -14,6 +14,7 @@ function deleteCur(episode_id) {
     } else if (numItems === 1) {
         container.parents('.series').find('.episode-label').text('episode');
     }
+    $('.navbar .num-queued').text($('.episode').size());
 }
 
 function failDelete(item) {

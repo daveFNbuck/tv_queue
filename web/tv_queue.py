@@ -100,3 +100,7 @@ def watch_until():
 @app.route('/preview')
 def preview():
     return render_template('preview.html', **ShowDatabase().get_preview(user_id(), days=7))
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)

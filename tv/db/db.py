@@ -1,8 +1,6 @@
+import collections
 import datetime
 import json
-
-import collections
-import os
 
 import pymysql
 
@@ -225,6 +223,8 @@ class ShowDatabase(object):
             return cursor.fetchone()[0]
 
     def get_subscription_series_ids(self, uid):
+        if uid is None:
+            return []
         with self._connection.cursor() as cursor:
             cursor.execute('SELECT series_id FROM subscription WHERE user_id = %s', uid)
             return [user_id for user_id, in cursor.fetchall()]
@@ -243,6 +243,8 @@ class ShowDatabase(object):
             ]
 
     def get_unseen_episodes(self, uid):
+        if uid is None:
+            return []
         with self._connection.cursor() as cursor:
             cursor.execute(GET_UNSEEN, uid)
             return map(make_unseen, cursor.fetchall())

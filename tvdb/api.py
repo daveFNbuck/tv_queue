@@ -1,8 +1,8 @@
 import datetime
 import json
-import os
 import six.moves.urllib.parse
 import six.moves.urllib.request
+
 
 with open('/etc/tvq/api_key') as api_fobj:
     API_KEY = api_fobj.read().rstrip('\n')
@@ -33,7 +33,7 @@ class TvDbApi(object):
             },
         )
         response = six.moves.urllib.request.urlopen(request).read()
-        self._token = json.loads(response.decode())['token']
+        self._token = json.loads(response.decode('utf-8'))['token']
 
     def _update_token(self):
         if datetime.datetime.now() > self._expiration:
@@ -52,7 +52,7 @@ class TvDbApi(object):
         url = six.moves.urllib.parse.urljoin(API_URL, url_format.format(*safe_inputs))
         request = six.moves.urllib.request.Request(url=url, headers=self._headers())
         response = six.moves.urllib.request.urlopen(request).read()
-        loaded_response = json.loads(response.decode())
+        loaded_response = json.loads(response.decode('utf-8'))
         assert 'errors' not in loaded_response
         return loaded_response
 

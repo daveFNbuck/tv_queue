@@ -63,7 +63,8 @@ class TvDbApi(object):
             else:
                 raise
         loaded_response = json.loads(response.decode('utf-8'))
-        assert 'errors' not in loaded_response
+        if 'errors' in loaded_response:
+            raise RuntimeError('error loading {}: {}'.format(url, loaded_response['errors']))
         return loaded_response
 
     def search(self, query):

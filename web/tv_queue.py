@@ -8,11 +8,16 @@ app = flask.Flask(__name__)
 
 
 def render_template(*args, **kwargs):
+    db = ShowDatabase()
     uid = user_id()
     if uid is None:
-        return flask.render_template('login.html', num_queued=-1, num_recording=0)
+        return flask.render_template(
+            'login.html',
+            num_queued=-1,
+            num_recording=0,
+            users=db.user_names(),
+        )
 
-    db = ShowDatabase()
     username = db.get_user_name(uid) if uid else None
     kwargs.update({
         'users': db.user_names(),

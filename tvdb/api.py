@@ -3,6 +3,8 @@ import json
 import six.moves.urllib.parse
 import six.moves.urllib.request
 
+from retry_decorator import retry
+
 
 with open('/etc/tvq/api_key') as api_fobj:
     API_KEY = api_fobj.read().rstrip('\n')
@@ -46,6 +48,7 @@ class TvDbApi(object):
             'Authorization': 'Bearer {}'.format(self._token),
         }
 
+    @retry(Exception, tries=3, timeout_secs=0.1)
     def _get(self, url_format, *parameters):
         assert not any('/' in param for param in parameters)
         safe_inputs = (six.moves.urllib.parse.quote(param, safe='') for param in parameters)

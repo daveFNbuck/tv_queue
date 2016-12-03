@@ -4,10 +4,7 @@ import os
 import urllib.parse
 import urllib.request
 
-API_KEY_FILE = '.api_key'
-API_PATH = os.path.join(os.path.dirname(__file__), API_KEY_FILE)
-
-with open(API_PATH) as api_fobj:
+with open('/etc/tvq/api_key') as api_fobj:
     API_KEY = api_fobj.read().rstrip('\n')
 
 API_URL = 'https://api.thetvdb.com/'

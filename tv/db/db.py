@@ -9,7 +9,7 @@ import pymysql
 import tvdb.api
 
 
-_CREDENTIALS_FILE = os.path.join(os.path.dirname(__file__), '.credentials')
+_CREDENTIALS_FILE = '/etc/tvq/credentials'
 
 
 INSERT_NEW_UNSEEN = '''

@@ -100,6 +100,15 @@ def _series_key(series_tuple):
     return _sorting_key(series_tuple[1])
 
 
+def decode_air_time(airtime):
+    if not airtime:
+        airtime = '12:00 AM'
+    try:
+        return datetime.datetime.strptime(airtime, '%I:%M %p').time()
+    except ValueError:
+        return datetime.datetime.strptime(airtime, '%H:%M').time()
+
+
 class ShowDatabase(object):
     def __init__(self):
         self._api = tvdb.api.TvDbApi()
@@ -144,10 +153,10 @@ class ShowDatabase(object):
                 table='series',
                 row_id=series_id,
                 name=series['seriesName'],
-                air_time=datetime.datetime.strptime(series['airsTime'] or '12:01 AM', '%I:%M %p').time(),
+                air_time=decode_air_time(series['airsTime']),
                 episode_length=int(series['runtime'] or '0'),
                 last_updated=int(series['lastUpdated']),
-                network=series['network'],
+                network=series['network'][:20] if series['network'] else None,
                 banner=series['banner'],
             )
             for episode in self._api.episodes(series_id):

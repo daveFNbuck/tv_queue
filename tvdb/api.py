@@ -1,5 +1,6 @@
 import datetime
 import json
+from six.moves.urllib.error import HTTPError
 import six.moves.urllib.parse
 import six.moves.urllib.request
 
@@ -54,13 +55,20 @@ class TvDbApi(object):
         safe_inputs = (six.moves.urllib.parse.quote(param, safe='') for param in parameters)
         url = six.moves.urllib.parse.urljoin(API_URL, url_format.format(*safe_inputs))
         request = six.moves.urllib.request.Request(url=url, headers=self._headers())
-        response = six.moves.urllib.request.urlopen(request).read()
+        try:
+            response = six.moves.urllib.request.urlopen(request).read()
+        except HTTPError as ex:
+            if ex.code == 404:
+                return None
+            else:
+                raise
         loaded_response = json.loads(response.decode('utf-8'))
         assert 'errors' not in loaded_response
         return loaded_response
 
     def search(self, query):
-        return self._get(SEARCH, query)['data']
+        results = self._get(SEARCH, query)
+        return [] if results is None else results['data']
 
     def series(self, series_id):
         return self._get(SERIES, str(series_id))['data']

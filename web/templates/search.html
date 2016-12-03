@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 {% block body %}
+{% if is_search and not results %}
+    <div class="alert alert-danger centered">
+        No results found for this query.
+    </div>
+{% endif %}
 {% for result in results %}
     <div class="searchResult centered">
         {% if result.banner %}

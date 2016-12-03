@@ -60,7 +60,7 @@ def search():
     subscribed_series_ids = set(ShowDatabase().get_subscription_series_ids(user_id()))
     for result in results:
         result['subscribed'] = result['id'] in subscribed_series_ids
-    return render_template('search.html', results=results)
+    return render_template('search.html', results=results, is_search=True)
 
 
 @app.route('/subscribe')

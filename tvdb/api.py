@@ -1,8 +1,8 @@
 import datetime
 import json
 import os
-import urllib.parse
-import urllib.request
+import six.moves.urllib.parse
+import six.moves.urllib.request
 
 with open('/etc/tvq/api_key') as api_fobj:
     API_KEY = api_fobj.read().rstrip('\n')
@@ -24,15 +24,15 @@ class TvDbApi(object):
         self._expiration = datetime.datetime.now() + datetime.timedelta(hours=23)
 
         data = json.dumps({'apikey': self._key})
-        request = urllib.request.Request(
-            url=urllib.parse.urljoin(API_URL, 'login'),
+        request = six.moves.urllib.request.Request(
+            url=six.moves.urllib.parse.urljoin(API_URL, 'login'),
             data=str.encode(data),
             headers={
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
             },
         )
-        response = urllib.request.urlopen(request).read()
+        response = six.moves.urllib.request.urlopen(request).read()
         self._token = json.loads(response.decode())['token']
 
     def _update_token(self):
@@ -48,10 +48,10 @@ class TvDbApi(object):
 
     def _get(self, url_format, *parameters):
         assert not any('/' in param for param in parameters)
-        safe_inputs = (urllib.parse.quote(param, safe='') for param in parameters)
-        url = urllib.parse.urljoin(API_URL, url_format.format(*safe_inputs))
-        request = urllib.request.Request(url=url, headers=self._headers())
-        response = urllib.request.urlopen(request).read()
+        safe_inputs = (six.moves.urllib.parse.quote(param, safe='') for param in parameters)
+        url = six.moves.urllib.parse.urljoin(API_URL, url_format.format(*safe_inputs))
+        request = six.moves.urllib.request.Request(url=url, headers=self._headers())
+        response = six.moves.urllib.request.urlopen(request).read()
         loaded_response = json.loads(response.decode())
         assert 'errors' not in loaded_response
         return loaded_response
@@ -67,4 +67,5 @@ class TvDbApi(object):
         while next_page is not None:
             page = self._get(EPISODES, str(series_id), str(next_page))
             next_page = page['links']['next']
-            yield from page['data']
+            for datum in page['data']:
+                yield datum

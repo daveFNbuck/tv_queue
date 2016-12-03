@@ -19,7 +19,7 @@ INSERT_NEW_UNSEEN = '''
 '''
 
 INSERT_UNSEEN_FOR_SUBSCRIPTION = '''
-    INSERT INTO UNSEEN
+    INSERT INTO unseen
     (user_id, episode_id, subscription_id)
     SELECT %s, id, %s
     FROM episode

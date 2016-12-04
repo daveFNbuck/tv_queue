@@ -267,7 +267,7 @@ class ShowDatabase(object):
             if _end_time(unseen) > now:
                 continue
             series[(_sorting_key(unseen.series_name), unseen.series_id)].append(unseen)
-        return [
+        queued = [
             {
                 'name': group[0].series_name,
                 'id': group[0].series_id,
@@ -277,6 +277,8 @@ class ShowDatabase(object):
             }
             for _, group in sorted(series.items())
         ]
+        queued.sort(key=lambda group: _start_time(group['episodes'][0]), reverse=True)
+        return queued
 
     def get_preview(self, uid, days):
         now = datetime.datetime.now()

@@ -1,4 +1,14 @@
 .panel {
-    margin-bottom: 0;
-    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.listing {
+    position: relative;
+}
+
+.title-count {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    opacity: 0.7;
 }

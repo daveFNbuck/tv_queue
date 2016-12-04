@@ -2,23 +2,19 @@
 {% block body %}
     {% for series in queued_series %}
         <div class="series centered">
-            {% if series.banner %}
-            <div class="episodeBanner">
-                <h1><img src="http://thetvdb.com/banners/{{ series.banner }}" alt="{{ series.name }}" title="{{ series.name }}"></h1>
-            </div>
-            {% endif %}
-            {% if series.banner %}
-            <div class="episodeTitle hidden">
-            {% else %}
-            <div class="episodeTitle">
-            {% endif %}
-                <h1 >{{ series.name }}</h1>
+            <div class="listing clickable" data-toggle="collapse" data-target="#s_{{ series.id }}">
+                {% if series.banner %}
+                    <div class="episodeBanner">
+                        <h1><img src="http://thetvdb.com/banners/{{ series.banner }}" alt="{{ series.name }}" title="{{ series.name }}"></h1>
+                    </div>
+                {% endif %}
+
+                <div class="episodeTitle{% if series.banner %} hidden{% endif %}">
+                    <h1 >{{ series.name }}</h1>
+                </div>
+                <span class="badge title-count">{{ series.num_episodes }}</span>
             </div>
 
-            <button class="btn btn-info queue" type="button" data-toggle="collapse" data-target="#s_{{ series.id }}" aria-expanded="false" aria-controls="s_{{ series.id }}">
-                <span class="badge" >{{ series.num_episodes }}</span>
-                <span class="episode-label">episode{% if series.num_episodes != 1 %}s{% endif %}</span>
-            </button>
             <div class="collapse episodes" id="s_{{ series.id }}">
             {% for episode in series.episodes %}
                 <div class="panel panel-info">

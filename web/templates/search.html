@@ -50,12 +50,13 @@
         </div><!-- /.modal-content -->
       </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
-    {% if not loop.last %}
-        <hr>
-    {% endif %}
 {% endfor %}
 {% endblock %}
 
 {% block js %}
-<script src="static/search.js"></script>
+    <script src="static/search.js"></script>
+{% endblock %}
+
+{% block css %}
+    <link href="/static/search.css" rel="stylesheet">
 {% endblock %}

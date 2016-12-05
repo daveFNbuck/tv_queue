@@ -1,16 +1,11 @@
 .btn.subscription {
-    float: right;
-    position: absolute;
-    right: 4px;
-    bottom: 4px;
-    display: none;
+    width: 100%;
 }
 
-.searchResult {
-    position: relative;
+.well {
+    margin-bottom: 0;
 }
 
-.searchResult:hover .btn.subscription {
-    display:inherit;
+h1 {
+    margin-bottom: 0;
 }
-

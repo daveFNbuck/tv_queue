@@ -115,6 +115,10 @@ class ShowDatabase(object):
         with open(_CREDENTIALS_FILE) as cred_fobj:
             credentials = json.load(cred_fobj)
         self._connection = pymysql.connect(**credentials)
+        self._unseen_cache = {}
+
+    def clear_cache(self):
+        self._unseen_cache.clear()
 
     def _get_last_updated(self, series_id):
         with self._connection.cursor() as cursor:
@@ -254,9 +258,11 @@ class ShowDatabase(object):
     def get_unseen_episodes(self, uid):
         if uid is None:
             return []
-        with self._connection.cursor() as cursor:
-            cursor.execute(GET_UNSEEN, uid)
-            return map(make_unseen, cursor.fetchall())
+        if uid not in self._unseen_cache:
+            with self._connection.cursor() as cursor:
+                cursor.execute(GET_UNSEEN, uid)
+                self._unseen_cache[uid] = map(make_unseen, cursor.fetchall())
+        return self._unseen_cache[uid]
 
     def get_queued_by_series(self, uid):
         if uid is None:

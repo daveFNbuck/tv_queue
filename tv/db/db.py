@@ -4,8 +4,6 @@ import json
 
 import pymysql
 
-import tvdb.api
-
 
 _CREDENTIALS_FILE = '/etc/tvq/credentials'
 
@@ -110,8 +108,10 @@ def decode_air_time(airtime):
 
 
 class ShowDatabase(object):
-    def __init__(self):
-        self._api = tvdb.api.TvDbApi()
+    def __init__(self, api=None):
+        if api is None:
+            api = tvdb.api.TvDbApi()
+        self._api = api
         with open(_CREDENTIALS_FILE) as cred_fobj:
             credentials = json.load(cred_fobj)
         self._connection = pymysql.connect(**credentials)

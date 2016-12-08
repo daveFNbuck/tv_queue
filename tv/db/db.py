@@ -283,7 +283,7 @@ class ShowDatabase(object):
             }
             for _, group in sorted(series.items())
         ]
-        queued.sort(key=lambda group: _start_time(group['episodes'][0]), reverse=True)
+        queued.sort(key=lambda group: _start_time(group['episodes'][-1]), reverse=True)
         return queued
 
     def get_preview(self, uid, days):

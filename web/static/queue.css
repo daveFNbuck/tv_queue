@@ -22,3 +22,7 @@
 .episode .badge {
     float: right;
 }
+
+.title-count {
+    font-size: 14px;
+}

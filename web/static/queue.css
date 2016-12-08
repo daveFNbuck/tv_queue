@@ -18,3 +18,7 @@
 .episodeBanner img, .episodeTitle {
     border-radius: 10px;
 }
+
+.episode .badge {
+    float: right;
+}

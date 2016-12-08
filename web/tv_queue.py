@@ -6,14 +6,21 @@ from tvdb.api import TvDbApi
 
 app = flask.Flask(__name__)
 
-TVDB_API = TvDbApi()
-SHOW_DB = ShowDatabase(TVDB_API)
+TVDB_API = None
+SHOW_DB = None
+
+
+def get_api():
+    global TVDB_API
+    if TVDB_API is None:
+        TVDB_API = TvDbApi()
+    return TVDB_API
 
 
 @app.before_request
 def clear_cache():
     global SHOW_DB
-    SHOW_DB = ShowDatabase(TVDB_API)
+    SHOW_DB = ShowDatabase(api=False)
 
 
 def render_template(*args, **kwargs):
@@ -63,7 +70,7 @@ def login(username):
 @app.route('/search')
 def search():
     query = request.args['q']
-    results = TVDB_API.search(query) if query else []
+    results = get_api().search(query) if query else []
     subscribed_series_ids = set(SHOW_DB.get_subscription_series_ids(user_id()))
     for result in results:
         result['subscribed'] = result['id'] in subscribed_series_ids
@@ -73,7 +80,7 @@ def search():
 @app.route('/subscribe')
 def subscribe():
     series_id = request.args['series_id']
-    SHOW_DB.subscribe(user_id(), int(series_id))
+    ShowDatabase(get_api()).subscribe(user_id(), int(series_id))
     return series_id
 
 

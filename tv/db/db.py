@@ -4,6 +4,8 @@ import json
 
 import pymysql
 
+import tvdb.api
+
 
 _CREDENTIALS_FILE = '/etc/tvq/credentials'
 

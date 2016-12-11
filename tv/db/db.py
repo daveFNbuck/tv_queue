@@ -58,6 +58,12 @@ GET_UNSEEN = '''
     WHERE user_id = %s
 '''
 
+TIME_PATTERNS = (
+    '%I:%M %p',
+    '%I:%M%p',
+    '%H:%M',
+)
+
 Unseen = collections.namedtuple('Unseen', (
     'episode_id',
     'episode_title',
@@ -103,10 +109,12 @@ def _series_key(series_tuple):
 def decode_air_time(airtime):
     if not airtime:
         airtime = '12:00 AM'
-    try:
-        return datetime.datetime.strptime(airtime, '%I:%M %p').time()
-    except ValueError:
-        return datetime.datetime.strptime(airtime, '%H:%M').time()
+    for pattern in TIME_PATTERNS:
+        try:
+            return datetime.datetime.strptime(airtime, pattern).time()
+        except ValueError:
+            pass
+    raise ValueError('Cannot decode time string "{}"'.format(airtime))
 
 
 class ShowDatabase(object):

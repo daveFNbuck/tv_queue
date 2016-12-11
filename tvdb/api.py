@@ -17,6 +17,9 @@ SERIES = 'series/{}'
 EPISODES = 'series/{}/episodes?page={}'
 
 
+IGNORED_ERRORS = {'invalidLanguage'}
+
+
 class TvDbApi(object):
     def __init__(self, api_key=API_KEY):
         self._key = api_key
@@ -63,7 +66,7 @@ class TvDbApi(object):
             else:
                 raise
         loaded_response = json.loads(response.decode('utf-8'))
-        if 'errors' in loaded_response:
+        if any(err not in IGNORED_ERRORS for err in loaded_response.get('errors', {})):
             raise RuntimeError('error loading {}: {}'.format(url, loaded_response['errors']))
         return loaded_response
 

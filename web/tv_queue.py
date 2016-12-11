@@ -72,7 +72,7 @@ def search():
     subscribed_series_ids = set(SHOW_DB.get_subscription_series_ids(user_id()))
     for result in results:
         result['subscribed'] = result['id'] in subscribed_series_ids
-    return render_template('search.html', results=results, is_search=True)
+    return render_template('search.html', results=results)
 
 
 @app.route('/subscribe')
@@ -91,8 +91,14 @@ def unsubscribe():
 
 @app.route('/subscriptions')
 def subscriptions():
-    data = SHOW_DB.get_subscription_data(user_id())
-    return render_template('search.html', results=data)
+    data = list(SHOW_DB.get_subscription_data(user_id()))
+    return render_template('subscriptions.html', results=data)
+
+
+@app.route('/update_subscription')
+def update_subscription():
+    SHOW_DB.update_subscription(**request.args)
+    return ''
 
 
 @app.route('/watch')

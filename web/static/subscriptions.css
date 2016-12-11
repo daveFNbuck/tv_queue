@@ -1,0 +1,7 @@
+table .btn {
+    width: 100%;
+}
+
+input[name=shift_len] {
+    width: 3em;
+}

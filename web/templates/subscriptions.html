@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block body %}
+    <table class="table" id="subscriptions">
+        <thead>
+            <tr>
+                <th>Series</th>
+                <th>Network</th>
+                <th>Shift</th>
+                <th>Enabled</th>
+                <th></th>
+            </tr>
+        </thead>
+        {% for result in results %}
+        <tr>
+            <td>{{ result.name }}</td>
+            <td>{{ result.network }}</td>
+
+            <form class="form-inline series-form">
+                <input type="hidden" name="subscription_id" value="{{ result.subscription_id }}"/>
+                <td>
+                    <div class="form-group">
+                        <input name="shift_len" type="number" value="{{ result.shift_len }}"/>
+                        <select name="shift_type" value="{{ result.shift_type }}">
+                            {% if result.shift_type == "DAYS" %}
+                                <option value="HOURS">hours</option>
+                                <option value="DAYS" selected="selected">days</option>
+                            {% else %}
+                                <option value="HOURS" selected="selected">hours</option>
+                                <option value="DAYS">days</option>
+                            {% endif %}
+                        </select>
+                    </div>
+                </td>
+                <td>
+                    <input type="checkbox" name="enabled"{% if result.enabled %} checked{% endif %}>
+                </td>
+            </form>
+
+            <td><button class="btn btn-danger subscription" data-series-id="{{ result.series_id }}">Unsubscribe</button></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    {% for result in results %}
+        <div class="modal fade unsubscribe" tabindex="-1" role="dialog" for_series="{{ result.series_id }}">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Unsubscribe from {{ result.name }}?</h4>
+              </div>
+              <div class="modal-body">
+                <p>If you unsubscribe, you will permanently lose all record of which episodes you've watched.</p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" data-series-id="{{ result.series_id }}">Unsubscribe</button>
+              </div>
+            </div><!-- /.modal-content -->
+          </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+    {% endfor %}
+{% endblock %}
+
+{% block js %}
+    <script src="/static/search.js"></script>
+    <script src="/static/subscriptions.js"></script>
+    <script src="/static/DataTables/datatables.min.js"></script>
+{% endblock %}
+
+{% block css %}
+    <link href="/static/subscriptions.css" rel="stylesheet">
+    <link href="/static/DataTables/datatables.min.css" rel="stylesheet">
+{% endblock %}

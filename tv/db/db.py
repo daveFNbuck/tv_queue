@@ -40,8 +40,14 @@ EPISODES_UNTIL = '''
         )
 '''
 
+UPDATE_SUBSCRIPTION = '''
+    UPDATE subscription
+    SET shift_len = %s, shift_type = %s, enabled = %s
+    WHERE id = %s
+'''
+
 GET_SUBSCRIPTION_DATA = '''
-    SELECT series_id, name, banner
+    SELECT series_id, name, banner, subscription.id, shift_len, shift_type, enabled, network
     FROM
         subscription
         JOIN series ON subscription.series_id = series.id
@@ -49,13 +55,38 @@ GET_SUBSCRIPTION_DATA = '''
     ORDER BY name
 '''
 
+Subscription = collections.namedtuple('Subscription', (
+    'series_id',
+    'name',
+    'banner',
+    'subscription_id',
+    'shift_len',
+    'shift_type',
+    'enabled',
+    'network',
+))
+
 GET_UNSEEN = '''
-    SELECT episode_id, title, overview, banner, name, series_id, season, episode, air_date, air_time, episode_length
+    SELECT
+        episode_id,
+        title,
+        overview,
+        banner,
+        name,
+        series.id,
+        season,
+        episode,
+        air_date,
+        air_time,
+        episode_length,
+        shift_len,
+        shift_type
     FROM
         unseen
         JOIN episode ON episode_id = episode.id
         JOIN series ON series_id = series.id
-    WHERE user_id = %s
+        JOIN subscription ON subscription_id = subscription.id
+    WHERE subscription.enabled and unseen.user_id = %s
 '''
 
 TIME_PATTERNS = (
@@ -76,6 +107,8 @@ Unseen = collections.namedtuple('Unseen', (
     'air_date',
     'air_time',
     'episode_length',
+    'shift_len',
+    'shift_type',
 ))
 
 IGNORED_SORTING_WORDS = ['A', 'AN', 'THE']
@@ -83,7 +116,12 @@ IGNORED_SORTING_WORDS = ['A', 'AN', 'THE']
 
 def make_unseen(row):
     start = Unseen(*row)
-    return start._replace(air_time=(datetime.datetime(2000, 1, 1) + start.air_time).time())
+    if start.shift_type == 'HOURS':
+        shift = datetime.timedelta(hours=start.shift_len)
+    elif start.shift_type == 'DAYS':
+        shift = datetime.timedelta(days=start.shift_len)
+    air_time = datetime.datetime.combine(start.air_date, datetime.time()) + start.air_time + shift
+    return start._replace(air_time=air_time.time(), air_date=air_time.date())
 
 
 def _start_time(episode):
@@ -224,6 +262,12 @@ class ShowDatabase(object):
             cursor.execute(WATCH, (user_id, episode_id))
         self._connection.commit()
 
+    def update_subscription(self, subscription_id, shift_len, shift_type, enabled=False):
+        enabled = 1 if enabled else 0
+        with self._connection.cursor() as cursor:
+            cursor.execute(UPDATE_SUBSCRIPTION, (shift_len, shift_type, enabled, subscription_id))
+        self._connection.commit()
+
     def watch_until(self, user_id, episode_id):
         with self._connection.cursor() as cursor:
             cursor.execute(GET_EPISODE_DATA, (episode_id,))
@@ -258,15 +302,7 @@ class ShowDatabase(object):
     def get_subscription_data(self, uid):
         with self._connection.cursor() as cursor:
             cursor.execute(GET_SUBSCRIPTION_DATA, (uid,))
-            return [
-                {
-                    'seriesName': name,
-                    'id': series_id,
-                    'banner': banner,
-                    'subscribed': True,
-                }
-                for series_id, name, banner in sorted(cursor.fetchall(), key=_series_key)
-            ]
+            return [Subscription(*row) for row in sorted(cursor.fetchall(), key=_series_key)]
 
     def get_unseen_episodes(self, uid):
         if uid is None:

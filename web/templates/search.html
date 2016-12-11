@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block body %}
-{% if is_search and not results %}
+{% if not results %}
     <div class="alert alert-danger centered">
         No results found for this query.
     </div>
@@ -21,7 +21,7 @@
         </div>
 
         {% if result.overview %}
-            <div class="well episodeDescription">
+            <div class="well seriesDescription">
                 {{ result.overview }}
             </div>
         {% endif %}

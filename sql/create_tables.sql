@@ -36,11 +36,15 @@ CREATE TABLE `subscription` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint(20) unsigned NOT NULL,
   `series_id` bigint(20) unsigned NOT NULL,
+  `shift_len` int(11) NOT NULL DEFAULT '0',
+  `shift_type` enum('HOURS','DAYS') NOT NULL DEFAULT 'HOURS',
+  `enabled` tinyint(4) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
   UNIQUE KEY `subscription` (`user_id`,`series_id`),
   KEY `series_id` (`series_id`),
-  CONSTRAINT `subscription_ibfk_2` FOREIGN KEY (`series_id`) REFERENCES `series` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+  CONSTRAINT `subscription_ibfk_2` FOREIGN KEY (`series_id`) REFERENCES `series` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `subscription_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=94 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `unseen` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,

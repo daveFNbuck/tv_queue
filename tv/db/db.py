@@ -271,7 +271,7 @@ class ShowDatabase(object):
         if uid not in self._unseen_cache:
             with self._connection.cursor() as cursor:
                 cursor.execute(GET_UNSEEN, uid)
-                self._unseen_cache[uid] = map(make_unseen, cursor.fetchall())
+                self._unseen_cache[uid] = [make_unseen(row) for row in cursor.fetchall()]
         return self._unseen_cache[uid]
 
     def get_queued_by_series(self, uid):

@@ -55,8 +55,6 @@ def queue():
     return render_template(
         'queue.html',
         queued_series=queued_series,
-        num_series=len(queued_series),
-        num_episodes=sum(series['num_episodes'] for series in queued_series),
     )
 
 

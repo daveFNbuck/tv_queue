@@ -199,7 +199,10 @@ class ShowDatabase(object):
             cursor.execute('SELECT id FROM series')
             series_ids = cursor.fetchall()
         for series_id, in series_ids:
-            self.update_series(series_id, force)
+            try:
+                self.update_series(series_id, force)
+            except Exception as e:
+                print 'Could not update series {}: {}'.format(series_id, e)
 
     def subscribe(self, user_id, series_id):
         self.update_series(series_id)

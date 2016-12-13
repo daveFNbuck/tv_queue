@@ -140,8 +140,8 @@ class ShowDatabase(object):
 
     def _episode_ids(self, series_id):
         with self._connection.cursor() as cursor:
-            cursor.execute('SELECT id FROM episode WHERE series_id = %s', (series_id,))
-            return {row[0] for row in cursor.fetchall()}
+            cursor.execute('SELECT season, episode FROM episode WHERE series_id = %s', (series_id,))
+            return set(cursor.fetchall())
 
     @staticmethod
     def _insert_update(cursor, table, keys, **fields):
@@ -178,20 +178,21 @@ class ShowDatabase(object):
             for episode in self._api.episodes(series_id):
                 if not episode['firstAired']:
                     continue
-                episode_id = int(episode['id'])
+                season_number = int(episode['airedSeason'])
+                episode_number = int(episode['airedEpisodeNumber'])
                 self._insert_update(
                     cursor=cursor,
                     table='episode',
                     keys=('series_id', 'season', 'episode'),
                     series_id=series_id,
-                    season=int(episode['airedSeason']),
-                    episode=int(episode['airedEpisodeNumber']),
+                    season=season_number,
+                    episode=episode_number,
                     title=episode['episodeName'][:50] if episode['episodeName'] else None,
                     air_date=datetime.datetime.strptime(episode['firstAired'], '%Y-%m-%d').date(),
                     overview=episode['overview'],
                 )
-                if episode_id not in current_episodes:
-                    new_episodes.append((episode_id, series_id))
+                if (season_number, episode_number) not in current_episodes:
+                    new_episodes.append((cursor.lastrowid, series_id))
             cursor.executemany(INSERT_NEW_UNSEEN, new_episodes)
 
         self._connection.commit()

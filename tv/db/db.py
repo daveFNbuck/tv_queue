@@ -144,14 +144,15 @@ class ShowDatabase(object):
             return {row[0] for row in cursor.fetchall()}
 
     @staticmethod
-    def _insert_update(cursor, table, row_id, **fields):
-        query = 'INSERT INTO {} (id, {}) VALUES (%s, {}) ON DUPLICATE KEY UPDATE {}'.format(
+    def _insert_update(cursor, table, keys, **fields):
+        query = 'INSERT INTO {} ({}) VALUES ({}) ON DUPLICATE KEY UPDATE {}'.format(
             table,
             ', '.join(fields.keys()),
             ', '.join('%s' for _ in fields),
-            ', '.join(map('{}=%s'.format, fields.keys())),
+            ', '.join(map('{}=%s'.format, [key for key in fields.keys() if key not in keys])),
         )
-        cursor.execute(query, (row_id,) + tuple(fields.values()) + tuple(fields.values()))
+        non_keys = tuple(value for key, value in fields.items() if key not in keys)
+        cursor.execute(query, tuple(fields.values()) + non_keys)
 
     def update_series(self, series_id, force=False):
         series = self._api.series(series_id)
@@ -165,7 +166,8 @@ class ShowDatabase(object):
             self._insert_update(
                 cursor=cursor,
                 table='series',
-                row_id=series_id,
+                keys=('id',),
+                id=series_id,
                 name=series['seriesName'],
                 air_time=decode_air_time(series['airsTime']),
                 episode_length=int(series['runtime'] or '0'),
@@ -180,7 +182,7 @@ class ShowDatabase(object):
                 self._insert_update(
                     cursor=cursor,
                     table='episode',
-                    row_id=episode_id,
+                    keys=('series_id', 'season', 'episode'),
                     series_id=series_id,
                     season=int(episode['airedSeason']),
                     episode=int(episode['airedEpisodeNumber']),

@@ -8,7 +8,7 @@ CREATE TABLE `user` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `series` (
-  `id` bigint(20) unsigned NOT NULL,
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL DEFAULT '',
   `air_time` time DEFAULT NULL,
   `episode_length` int(11) DEFAULT NULL,
@@ -16,7 +16,7 @@ CREATE TABLE `series` (
   `network` varchar(20) DEFAULT NULL,
   `banner` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `episode` (
   `id` bigint(20) unsigned NOT NULL,

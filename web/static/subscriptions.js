@@ -22,7 +22,7 @@ $(function() {
         e.preventDefault();
     });
 
-    $('tr input').change(function() {
+    $('tr input,select').change(function() {
         $.ajax({
             url: "/update_subscription",
             data: $(this).parents('tr').find('form').serialize(),

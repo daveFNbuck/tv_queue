@@ -262,8 +262,7 @@ class ShowDatabase(object):
             cursor.execute(WATCH, (user_id, episode_id))
         self._connection.commit()
 
-    def update_subscription(self, subscription_id, shift_len, shift_type, enabled=False):
-        enabled = 1 if enabled else 0
+    def update_subscription(self, subscription_id, shift_len, shift_type, enabled):
         with self._connection.cursor() as cursor:
             cursor.execute(UPDATE_SUBSCRIPTION, (shift_len, shift_type, enabled, subscription_id))
         self._connection.commit()

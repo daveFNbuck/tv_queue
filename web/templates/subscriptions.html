@@ -11,31 +11,24 @@
             </tr>
         </thead>
         {% for result in results %}
-        <tr>
+        <tr data-subscription-id="{{ result.subscription_id }}">
             <td>{{ result.name }}</td>
             <td>{{ result.network }}</td>
-
-            <form class="form-inline series-form">
-                <input type="hidden" name="subscription_id" value="{{ result.subscription_id }}"/>
-                <td>
-                    <div class="form-group">
-                        <input name="shift_len" type="number" value="{{ result.shift_len }}"/>
-                        <select name="shift_type" value="{{ result.shift_type }}">
-                            {% if result.shift_type == "DAYS" %}
-                                <option value="HOURS">hours</option>
-                                <option value="DAYS" selected="selected">days</option>
-                            {% else %}
-                                <option value="HOURS" selected="selected">hours</option>
-                                <option value="DAYS">days</option>
-                            {% endif %}
-                        </select>
-                    </div>
-                </td>
-                <td>
-                    <input type="checkbox" name="enabled"{% if result.enabled %} checked{% endif %}>
-                </td>
-            </form>
-
+            <td>
+                <input name="shift_len" type="number" value="{{ result.shift_len }}"/>
+                <select name="shift_type" value="{{ result.shift_type }}">
+                    {% if result.shift_type == "DAYS" %}
+                        <option value="HOURS">hours</option>
+                        <option value="DAYS" selected="selected">days</option>
+                    {% else %}
+                        <option value="HOURS" selected="selected">hours</option>
+                        <option value="DAYS">days</option>
+                    {% endif %}
+                </select>
+            </td>
+            <td>
+                <input type="checkbox" name="enabled"{% if result.enabled %} checked{% endif %}>
+            </td>
             <td><button class="btn btn-danger subscription" data-series-id="{{ result.series_id }}">Unsubscribe</button></td>
         </tr>
         {% endfor %}

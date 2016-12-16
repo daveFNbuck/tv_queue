@@ -13,21 +13,22 @@ $(function() {
         }
     } );
 
-    $('.series-form').submit(function(e) {
-        $.ajax({
-            url: "/update_subscription",
-            data: $(this).serialize(),
-            error: function() { alert("Update failed"); },
-        });
-        e.preventDefault();
-    });
-
+    $('table input[type=checkbox]').bootstrapToggle();
     $('tr input,select').change(function() {
-        $.ajax({
-            url: "/update_subscription",
-            data: $(this).parents('tr').find('form').serialize(),
-            error: function() { alert("Update failed"); },
-        })
+        var row = $(this).parents('tr');
+        var data = {
+            'enabled': row.find('[name=enabled]').is(':checked') + 0,
+            'shift_len': parseInt(row.find('[name=shift_len]').val()),
+            'shift_type': row.find('[name=shift_type]').val(),
+            'subscription_id': parseInt(row.attr('data-subscription-id')),
+        }
+        if (!isNaN(data['shift_len'])) {
+            $.ajax({
+                url: "/update_subscription",
+                data: data,
+                error: function() { alert("Update failed"); },
+            })
+        }
     });
 
     $('#subscriptions').dataTable({

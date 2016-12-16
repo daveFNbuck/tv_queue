@@ -32,7 +32,6 @@ $(function() {
         var series_id = this.attributes['data-series-id'].nodeValue;
         var data = {'series_id': series_id}
         if (this.textContent == "Unsubscribe") {
-            jQuery.noConflict();
             $('.modal[for_series=' + series_id + ']').modal()
         } else if (this.textContent == "Subscribe") {
             $.ajax('/subscribe', {'success': handle_subscription, 'error': fail_subscription, 'data': data})

@@ -7,7 +7,7 @@ import six.moves.urllib.request
 from retry_decorator import retry
 
 
-with open('/etc/tvq/api_key') as api_fobj:
+with open('config/api_key') as api_fobj:
     API_KEY = api_fobj.read().rstrip('\n')
 
 API_URL = 'https://api.thetvdb.com/'

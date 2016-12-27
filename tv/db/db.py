@@ -7,7 +7,7 @@ import pymysql
 import tvdb.api
 
 
-_CREDENTIALS_FILE = '/etc/tvq/credentials'
+_CREDENTIALS_FILE = 'config/credentials'
 
 
 DELETE_EPISODE = '''

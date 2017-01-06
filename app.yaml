@@ -5,3 +5,4 @@ threadsafe: true
 handlers:
 - url: /.*
   script: web.tv_queue.app
+  secure: always

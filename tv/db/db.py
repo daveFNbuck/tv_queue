@@ -318,7 +318,7 @@ class ShowDatabase(object):
         now = datetime.datetime.now()
         series = collections.defaultdict(list)
         for unseen in self.get_unseen_episodes(uid):
-            if _end_time(unseen) > now:
+            if _start_time(unseen) > now:
                 continue
             series[(_sorting_key(unseen.series_name), unseen.series_id)].append(unseen)
         queued = [

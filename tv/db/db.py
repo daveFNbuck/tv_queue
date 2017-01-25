@@ -93,6 +93,7 @@ TIME_PATTERNS = (
     '%I:%M %p',
     '%I:%M%p',
     '%H:%M',
+    '%I%p',
 )
 
 Unseen = collections.namedtuple('Unseen', (

@@ -118,6 +118,8 @@ Unseen = collections.namedtuple('Unseen', (
 
 IGNORED_SORTING_WORDS = ['A', 'AN', 'THE']
 
+SEASON_KEY = 'airedSeason'
+EPISODE_KEY = 'airedEpisodeNumber'
 
 def make_unseen(row):
     start = Unseen(*row)
@@ -223,8 +225,10 @@ class ShowDatabase(object):
                 banner=series['banner'],
             )
             for episode in self._api.episodes(series_id):
-                season_number = int(episode['airedSeason'])
-                episode_number = int(episode['airedEpisodeNumber'])
+                if episode[SEASON_KEY] is None or episode[EPISODE_KEY] is None:
+                    continue
+                season_number = int(episode[SEASON_KEY])
+                episode_number = int(episode[EPISODE_KEY])
                 if not episode['firstAired']:
                     key = (season_number, episode_number)
                     if key in current_episodes:

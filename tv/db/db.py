@@ -18,6 +18,10 @@ INSERT_NEW_UNSEEN = '''
     WHERE series_id = %s
 '''
 
+DELETE_UNSEEN = '''
+    DELETE FROM unseen where episode_id = %s
+'''
+
 INSERT_UNSEEN_FOR_SUBSCRIPTION = '''
     INSERT INTO unseen
     (user_id, episode_id, subscription_id)
@@ -179,8 +183,11 @@ class ShowDatabase(object):
 
     def _episode_ids(self, series_id):
         with self._connection.cursor() as cursor:
-            cursor.execute('SELECT season, episode FROM episode WHERE series_id = %s', (series_id,))
-            return set(cursor.fetchall())
+            cursor.execute('SELECT id, season, episode FROM episode WHERE series_id = %s', (series_id,))
+            return {
+                (season, episode): episode_id
+                for episode_id, season, episode in cursor.fetchall()
+            }
 
     @staticmethod
     def _insert_update(cursor, table, keys, **fields):
@@ -201,6 +208,7 @@ class ShowDatabase(object):
 
         current_episodes = self._episode_ids(series_id)
         new_episodes = []
+        removed_episodes = []
         with self._connection.cursor() as cursor:
             self._insert_update(
                 cursor=cursor,
@@ -215,10 +223,13 @@ class ShowDatabase(object):
                 banner=series['banner'],
             )
             for episode in self._api.episodes(series_id):
-                if not episode['firstAired']:
-                    continue
                 season_number = int(episode['airedSeason'])
                 episode_number = int(episode['airedEpisodeNumber'])
+                if not episode['firstAired']:
+                    key = (season_number, episode_number)
+                    if key in current_episodes:
+                        removed_episodes.append(current_episodes[key])
+                    continue
                 self._insert_update(
                     cursor=cursor,
                     table='episode',
@@ -233,6 +244,7 @@ class ShowDatabase(object):
                 if (season_number, episode_number) not in current_episodes:
                     new_episodes.append((cursor.lastrowid, series_id))
             cursor.executemany(INSERT_NEW_UNSEEN, new_episodes)
+            cursor.executemany(DELETE_UNSEEN, removed_episodes)
 
         self._connection.commit()
 

@@ -7,7 +7,10 @@
                 {% for episode in episode_list %}
                     <li class="list-group-item">
                         <span class="badge">{{ episode.air_time.strftime('%I:%M%p').lower().lstrip('0') }}</span>
-                        {{ episode.series_name }}
+                        <b>{{ episode.series_name }}</b>
+                        {% if episode.episode_title %}
+                         - {{episode.episode_title}}
+                        {% endif %}
                     </li>
                 {% endfor %}
             </ul>

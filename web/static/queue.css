@@ -15,8 +15,10 @@
     opacity: 0.7;
 }
 
-.episodeBanner img, .episodeTitle {
-    border-radius: 10px;
+@media (min-width: 759px) {
+    .episodeBanner img, .episodeTitle {
+        border-radius: 10px;
+    }
 }
 
 .episode .badge {

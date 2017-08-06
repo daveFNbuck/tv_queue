@@ -1,9 +1,31 @@
-.btn.subscription {
-    width: 100%;
-    border-top-right-radius: 0;
-    border-top-left-radius: 0;
-    border-bottom-right-radius: 10px;
-    border-bottom-left-radius: 10px;
+@media (min-width: 759px) {
+    .btn.subscription {
+        width: 100%;
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
+        border-bottom-right-radius: 10px;
+        border-bottom-left-radius: 10px;
+    }
+    .episodeBanner img, .episodeTitle {
+        border-top-right-radius: 10px;
+        border-top-left-radius: 10px;
+    }
+}
+
+@media (max-width: 758px) {
+    .btn.subscription {
+        width: 100%;
+        border-radius: 0 !important;
+    }
+    .episodeBanner img, .episodeTitle {
+        border-radius: 0 !important;
+    }
+}
+
+@media (max-width: 758px) {
+    .btn.subscription {
+        width: 100%;
+    }
 }
 
 .well {
@@ -13,9 +35,4 @@
 
 h1 {
     margin-bottom: 0;
-}
-
-.episodeBanner img, .episodeTitle {
-    border-top-right-radius: 10px;
-    border-top-left-radius: 10px;
 }

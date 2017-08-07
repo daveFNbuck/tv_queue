@@ -21,10 +21,42 @@
     }
 }
 
+@media (max-width: 757px) {
+    .episodeTitle h1 {
+        font-size: 5vw;
+    }
+}
+
 .episode .badge {
     float: right;
 }
 
 .title-count {
     font-size: 14px;
+}
+
+.episodeTitle {
+    background: radial-gradient(#CCF, #44C);
+}
+
+.episodeTitleHeight {
+    display: block;
+    padding-bottom: 18.47%;
+}
+
+.episodeTitleHolder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+}
+
+.episodeTitle h1 {
+    position: relative;
+    margin: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    color: #EEF;
 }

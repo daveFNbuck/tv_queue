@@ -10,7 +10,10 @@
                 {% endif %}
 
                 <div class="episodeTitle{% if series.banner %} hidden{% endif %}">
-                    <h1 >{{ series.name }}</h1>
+                    <div class="episodeTitleHeight"></div>
+                    <div class="episodeTitleHolder">
+                        <h1>{{ series.name }}</h1>
+                    </div>
                 </div>
                 <span class="badge title-count">{{ series.num_episodes }}</span>
             </div>

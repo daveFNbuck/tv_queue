@@ -36,3 +36,16 @@
 h1 {
     margin-bottom: 0;
 }
+
+.episodeTitle {
+    height: 140px;
+    background: radial-gradient(#CCF, #44C);
+}
+
+.episodeTitle h1 {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    color: #EEF;
+}

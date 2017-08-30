@@ -81,6 +81,12 @@ class TvDbApi(object):
         next_page = 1
         while next_page is not None:
             page = self._get(EPISODES, str(series_id), str(next_page))
-            next_page = page['links']['next']
-            for datum in page['data']:
-                yield datum
+            try:
+                next_page = page['links']['next']
+            except (AttributeError, TypeError):
+                next_page = None
+            try:
+                for datum in page['data']:
+                    yield datum
+            except TypeError:
+                return

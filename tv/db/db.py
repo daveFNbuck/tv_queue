@@ -16,7 +16,7 @@ DELETE_EPISODE = '''
 
 SUBSCRIPTION_INSERT = 'INSERT INTO subscription (user_id, series_id) VALUES (%s, %s)'
 
-WATCH = 'INSERT INTO seen (user_id, episode_id) VALUES (%s, %s)'
+WATCH = 'INSERT INTO seen (user_id, episode_id, watch_time) VALUES (%s, %s, NOW())'
 
 GET_EPISODE_DATA = 'SELECT series_id, season, episode FROM episode WHERE id = %s'
 EPISODES_UNTIL = '''

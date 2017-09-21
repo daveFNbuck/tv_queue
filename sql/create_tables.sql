@@ -50,7 +50,7 @@ CREATE TABLE `seen` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint(20) unsigned NOT NULL,
   `episode_id` bigint(20) unsigned NOT NULL,
-  `watch_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `watch_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `episode_id` (`episode_id`),

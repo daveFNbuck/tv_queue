@@ -2,7 +2,7 @@ CREATE TABLE `seen` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `user_id` bigint(20) unsigned NOT NULL,
   `episode_id` bigint(20) unsigned NOT NULL,
-  `watch_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `watch_time` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `episode_id` (`episode_id`),
@@ -10,8 +10,8 @@ CREATE TABLE `seen` (
   CONSTRAINT `seen_ibfk_2` FOREIGN KEY (`episode_id`) REFERENCES `episode` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO seen (user_id, episode_id, watch_time)
-SELECT subscription.user_id, episode.id, null
+INSERT INTO seen (user_id, episode_id)
+SELECT subscription.user_id, episode.id
 FROM
     subscription
     JOIN episode USING(series_id)

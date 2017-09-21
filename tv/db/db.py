@@ -73,7 +73,9 @@ GET_UNSEEN = '''
         subscription
         JOIN episode USING(series_id)
         JOIN series ON series.id = subscription.series_id
-        LEFT JOIN seen ON episode.id = episode_id
+        LEFT JOIN seen ON
+            episode.id = episode_id
+            AND seen.user_id = subscription.user_id
     WHERE
         subscription.enabled and subscription.user_id = %s
         AND seen.episode_id IS NULL

@@ -77,8 +77,9 @@ GET_UNSEEN = '''
             episode.id = episode_id
             AND seen.user_id = subscription.user_id
     WHERE
-        subscription.enabled and subscription.user_id = %s
-        AND seen.episode_id IS NULL
+        subscription.enabled
+        AND subscription.user_id = %s
+        AND seen.id IS NULL
 '''
 
 TIME_PATTERNS = (

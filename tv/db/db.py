@@ -10,29 +10,13 @@ import tvdb.api
 _CREDENTIALS_FILE = '/etc/tvq/credentials'
 
 
-INSERT_NEW_UNSEEN = '''
-    INSERT INTO unseen
-    (user_id, episode_id, subscription_id)
-    SELECT user_id, %s, id
-    FROM subscription
-    WHERE series_id = %s
-'''
-
-DELETE_UNSEEN = '''
-    DELETE FROM unseen where episode_id = %s
-'''
-
-INSERT_UNSEEN_FOR_SUBSCRIPTION = '''
-    INSERT INTO unseen
-    (user_id, episode_id, subscription_id)
-    SELECT %s, id, %s
-    FROM episode
-    WHERE series_id = %s
+DELETE_EPISODE = '''
+    DELETE FROM episode WHERE episode_id = %s
 '''
 
 SUBSCRIPTION_INSERT = 'INSERT INTO subscription (user_id, series_id) VALUES (%s, %s)'
 
-WATCH = 'DELETE FROM unseen WHERE user_id = %s AND episode_id = %s'
+WATCH = 'INSERT INTO seen (user_id, episode_id) VALUES (%s, %s)'
 
 GET_EPISODE_DATA = 'SELECT series_id, season, episode FROM episode WHERE id = %s'
 EPISODES_UNTIL = '''
@@ -72,7 +56,7 @@ Subscription = collections.namedtuple('Subscription', (
 
 GET_UNSEEN = '''
     SELECT
-        episode_id,
+        episode.id,
         title,
         overview,
         banner,
@@ -86,11 +70,13 @@ GET_UNSEEN = '''
         shift_len,
         shift_type
     FROM
-        unseen
-        JOIN episode ON episode_id = episode.id
-        JOIN series ON series_id = series.id
-        JOIN subscription ON subscription_id = subscription.id
-    WHERE subscription.enabled and unseen.user_id = %s
+        subscription
+        JOIN episode USING(series_id)
+        JOIN series ON series.id = subscription.series_id
+        LEFT JOIN seen ON episode.id = episode_id
+    WHERE
+        subscription.enabled and subscription.user_id = %s
+        AND seen.episode_id IS NULL
 '''
 
 TIME_PATTERNS = (
@@ -209,7 +195,6 @@ class ShowDatabase(object):
             return
 
         current_episodes = self._episode_ids(series_id)
-        new_episodes = []
         removed_episodes = []
         with self._connection.cursor() as cursor:
             self._insert_update(
@@ -245,10 +230,7 @@ class ShowDatabase(object):
                     air_date=datetime.datetime.strptime(episode['firstAired'], '%Y-%m-%d').date(),
                     overview=episode['overview'],
                 )
-                if (season_number, episode_number) not in current_episodes:
-                    new_episodes.append((cursor.lastrowid, series_id))
-            cursor.executemany(INSERT_NEW_UNSEEN, new_episodes)
-            cursor.executemany(DELETE_UNSEEN, removed_episodes)
+            cursor.executemany(DELETE_EPISODE, removed_episodes)
 
         self._connection.commit()
 
@@ -269,7 +251,6 @@ class ShowDatabase(object):
                 cursor.execute(SUBSCRIPTION_INSERT, (user_id, series_id))
             except pymysql.err.IntegrityError:
                 return
-            cursor.execute(INSERT_UNSEEN_FOR_SUBSCRIPTION, (user_id, cursor.lastrowid, series_id))
         self._connection.commit()
 
     def unsubscribe(self, user_id, series_id):

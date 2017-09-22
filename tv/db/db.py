@@ -155,6 +155,13 @@ def decode_air_time(airtime):
     raise ValueError('Cannot decode time string "{}"'.format(airtime))
 
 
+def encode(value):
+    try:
+        return value.encode('utf8')
+    except AttributeError:
+        return value
+
+
 class ShowDatabase(object):
     def __init__(self, api=None):
         if api is None:
@@ -200,7 +207,7 @@ class ShowDatabase(object):
             ', '.join('%s' for _ in fields),
             ', '.join(map('{}=%s'.format, [key for key in fields.keys() if key not in keys])),
         )
-        non_keys = tuple(value for key, value in fields.items() if key not in keys)
+        non_keys = tuple(encode(value) for key, value in fields.items() if key not in keys)
         cursor.execute(query, tuple(fields.values()) + non_keys)
 
     def update_series(self, series_id, force=False):

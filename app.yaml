@@ -3,6 +3,8 @@ api_version: 1
 threadsafe: true
 
 handlers:
+- url: /static
+  static_dir: web/static
 - url: /.*
   script: web.tv_queue.app
   secure: always

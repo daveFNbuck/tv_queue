@@ -19,7 +19,7 @@ CREATE TABLE `series` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `episode` (
-  `id` bigint(20) unsigned NOT NULL,
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `series_id` bigint(20) unsigned NOT NULL,
   `season` int(11) NOT NULL,
   `episode` int(11) NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE `subscription` (
   KEY `series_id` (`series_id`),
   CONSTRAINT `subscription_ibfk_2` FOREIGN KEY (`series_id`) REFERENCES `series` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `subscription_ibfk_3` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=94 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 CREATE TABLE `seen` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,

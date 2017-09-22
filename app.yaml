@@ -8,3 +8,7 @@ handlers:
 - url: /.*
   script: web.tv_queue.app
   secure: always
+
+libraries:
+- name: MySQLdb
+  version: "latest"

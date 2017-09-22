@@ -1,13 +1,17 @@
 import collections
+from contextlib import closing
 import datetime
 import json
+import os
 
 import pymysql
+import MySQLdb
 
 import tvdb.api
 
 
 _CREDENTIALS_FILE = 'config/credentials'
+_GCLOUD_CREDENTIALS_FILE = 'config/gcloud_credentials'
 
 
 DELETE_EPISODE = '''
@@ -156,16 +160,24 @@ class ShowDatabase(object):
         if api is None:
             api = tvdb.api.TvDbApi()
         self._api = api
-        with open(_CREDENTIALS_FILE) as cred_fobj:
+
+        if os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/'):
+            credentials_file = _GCLOUD_CREDENTIALS_FILE
+        else:
+            credentials_file = _CREDENTIALS_FILE
+        with open(credentials_file) as cred_fobj:
             credentials = json.load(cred_fobj)
-        self._connection = pymysql.connect(**credentials)
+        self._connection = MySQLdb.connect(**credentials)
         self._unseen_cache = {}
 
     def clear_cache(self):
         self._unseen_cache.clear()
 
+    def cursor(self):
+        return closing(self._connection.cursor())
+
     def _get_last_updated(self, series_id):
-        with self._connection.cursor() as cursor:
+        with self.cursor() as cursor:
             results = cursor.execute('SELECT last_updated FROM series WHERE id = %s', (series_id,))
             if results:
                 return cursor.fetchone()[0]
@@ -173,7 +185,7 @@ class ShowDatabase(object):
                 return -1
 
     def _episode_ids(self, series_id):
-        with self._connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute('SELECT id, season, episode FROM episode WHERE series_id = %s', (series_id,))
             return {
                 (season, episode): episode_id
@@ -199,7 +211,7 @@ class ShowDatabase(object):
 
         current_episodes = self._episode_ids(series_id)
         removed_episodes = []
-        with self._connection.cursor() as cursor:
+        with self.cursor() as cursor:
             self._insert_update(
                 cursor=cursor,
                 table='series',
@@ -220,7 +232,7 @@ class ShowDatabase(object):
                 if not episode['firstAired']:
                     key = (season_number, episode_number)
                     if key in current_episodes:
-                        removed_episodes.append(current_episodes[key])
+                        removed_episodes.append((current_episodes[key],))
                     continue
                 self._insert_update(
                     cursor=cursor,
@@ -238,7 +250,7 @@ class ShowDatabase(object):
         self._connection.commit()
 
     def update_all_series(self, force=False):
-        with self._connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute('SELECT id FROM series')
             series_ids = cursor.fetchall()
         for series_id, in series_ids:
@@ -249,7 +261,7 @@ class ShowDatabase(object):
 
     def subscribe(self, user_id, series_id):
         self.update_series(series_id)
-        with self._connection.cursor() as cursor:
+        with self.cursor() as cursor:
             try:
                 cursor.execute(SUBSCRIPTION_INSERT, (user_id, series_id))
             except pymysql.err.IntegrityError:
@@ -257,22 +269,22 @@ class ShowDatabase(object):
         self._connection.commit()
 
     def unsubscribe(self, user_id, series_id):
-        with self._connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute('DELETE FROM subscription WHERE user_id = %s AND series_id = %s', (user_id, series_id))
         self._connection.commit()
 
     def watch(self, user_id, episode_id):
-        with self._connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute(WATCH, (user_id, episode_id))
         self._connection.commit()
 
     def update_subscription(self, subscription_id, shift_len, shift_type, enabled):
-        with self._connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute(UPDATE_SUBSCRIPTION, (shift_len, shift_type, enabled, subscription_id))
         self._connection.commit()
 
     def watch_until(self, user_id, episode_id):
-        with self._connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute(GET_EPISODE_DATA, (episode_id,))
             series_id, season, episode = cursor.fetchone()
             cursor.execute(EPISODES_UNTIL, (series_id, season, season, episode))
@@ -281,29 +293,29 @@ class ShowDatabase(object):
         self._connection.commit()
 
     def user_names(self):
-        with self._connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute('SELECT name FROM user ORDER BY id')
             return [name for name, in cursor.fetchall()]
 
     def get_user_id(self, username):
-        with self._connection.cursor() as cursor:
-            cursor.execute('SELECT id FROM user WHERE name = %s', username)
+        with self.cursor() as cursor:
+            cursor.execute('SELECT id FROM user WHERE name = %s', (username,))
             return cursor.fetchone()[0]
 
     def get_user_name(self, uid):
-        with self._connection.cursor() as cursor:
-            cursor.execute('SELECT name FROM user WHERE id = %s', uid)
+        with self.cursor() as cursor:
+            cursor.execute('SELECT name FROM user WHERE id = %s', (uid,))
             return cursor.fetchone()[0]
 
     def get_subscription_series_ids(self, uid):
         if uid is None:
             return []
-        with self._connection.cursor() as cursor:
-            cursor.execute('SELECT series_id FROM subscription WHERE user_id = %s', uid)
+        with self.cursor() as cursor:
+            cursor.execute('SELECT series_id FROM subscription WHERE user_id = %s', (uid,))
             return [user_id for user_id, in cursor.fetchall()]
 
     def get_subscription_data(self, uid):
-        with self._connection.cursor() as cursor:
+        with self.cursor() as cursor:
             cursor.execute(GET_SUBSCRIPTION_DATA, (uid,))
             return [Subscription(*row) for row in sorted(cursor.fetchall(), key=_series_key)]
 
@@ -311,8 +323,8 @@ class ShowDatabase(object):
         if uid is None:
             return []
         if uid not in self._unseen_cache:
-            with self._connection.cursor() as cursor:
-                cursor.execute(GET_UNSEEN, uid)
+            with self.cursor() as cursor:
+                cursor.execute(GET_UNSEEN, (uid,))
                 self._unseen_cache[uid] = [make_unseen(row) for row in cursor.fetchall()]
         return self._unseen_cache[uid]
 

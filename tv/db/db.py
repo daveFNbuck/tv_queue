@@ -245,6 +245,7 @@ class ShowDatabase(object):
         for series_id, in series_ids:
             try:
                 self.update_series(series_id, force)
+                print('Updated series {}'.format(series_id))
             except Exception as e:
                 print('Cannot update series {}: {}'.format(series_id, e))
 

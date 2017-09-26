@@ -239,10 +239,21 @@ class ShowDatabase(object):
         self._connection.commit()
 
     def update_all_series(self, force=False):
-        with self._connection.cursor() as cursor:
-            cursor.execute('SELECT id FROM series')
-            series_ids = cursor.fetchall()
-        for series_id, in series_ids:
+        if force:
+            with self._connection.cursor() as cursor:
+                cursor.execute('SELECT id FROM series')
+                series_ids = cursor.fetchall()
+        else:
+            with self._connection.cursor() as cursor:
+                cursor.execute('SELECT id, last_updated FROM series')
+                updates = dict(cursor.fetchall())
+            updated_series = self._api.updates()
+            series_ids = [
+                update['id']
+                for update in updated_series
+                if updates.get(update['id'], update['lastUpdated']) < update['lastUpdated']
+            ]
+        for series_id in series_ids:
             try:
                 self.update_series(series_id, force)
                 print('Updated series {}'.format(series_id))

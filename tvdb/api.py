@@ -3,6 +3,7 @@ import json
 from six.moves.urllib.error import HTTPError
 import six.moves.urllib.parse
 import six.moves.urllib.request
+import time
 
 from retry_decorator import retry
 
@@ -15,6 +16,10 @@ API_URL = 'https://api.thetvdb.com/'
 SEARCH = 'search/series?name={}'
 SERIES = 'series/{}'
 EPISODES = 'series/{}/episodes?page={}'
+UPDATED = 'updated/query?fromTime={}'
+
+
+THREE_DAYS = 3 * 24 * 3600
 
 
 IGNORED_ERRORS = {'invalidLanguage'}
@@ -73,6 +78,11 @@ class TvDbApi(object):
     def search(self, query):
         results = self._get(SEARCH, query)
         return [] if results is None else results['data']
+
+    def updates(self, from_time=None):
+        if from_time is None:
+            from_time = int(time.time() - THREE_DAYS)
+        return self._get(UPDATED, str(from_time))['data']
 
     def series(self, series_id):
         return self._get(SERIES, str(series_id))['data']

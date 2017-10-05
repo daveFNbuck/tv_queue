@@ -159,11 +159,21 @@ class ShowDatabase(object):
         self._api = api
         with open(_CREDENTIALS_FILE) as cred_fobj:
             credentials = json.load(cred_fobj)
+        self._closed = False
         self._connection = pymysql.connect(**credentials)
         self._unseen_cache = {}
 
     def clear_cache(self):
         self._unseen_cache.clear()
+
+    def close(self):
+        print('closing')
+        self._closed = True
+        self._connection.close()
+
+    def __del__(self):
+        if not self._closed:
+            self.close()
 
     def _get_last_updated(self, series_id):
         with self._connection.cursor() as cursor:

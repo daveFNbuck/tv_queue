@@ -23,6 +23,12 @@ def clear_cache():
     SHOW_DB = ShowDatabase(api=False)
 
 
+@app.after_request
+def close_db(response):
+    SHOW_DB.close()
+    return response
+
+
 def render_template(*args, **kwargs):
     uid = user_id()
     if uid is None:

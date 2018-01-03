@@ -11,7 +11,7 @@ _CREDENTIALS_FILE = '/etc/tvq/credentials'
 
 
 DELETE_EPISODE = '''
-    DELETE FROM episode WHERE episode_id = %s
+    DELETE FROM episode WHERE id = %s
 '''
 
 SUBSCRIPTION_INSERT = 'INSERT INTO subscription (user_id, series_id) VALUES (%s, %s)'
@@ -167,7 +167,6 @@ class ShowDatabase(object):
         self._unseen_cache.clear()
 
     def close(self):
-        print('closing')
         self._closed = True
         self._connection.close()
 
@@ -209,7 +208,7 @@ class ShowDatabase(object):
             return
 
         current_episodes = self._episode_ids(series_id)
-        removed_episodes = []
+        tvdb_episodes = set()
         with self._connection.cursor() as cursor:
             self._insert_update(
                 cursor=cursor,
@@ -224,15 +223,17 @@ class ShowDatabase(object):
                 banner=series['banner'],
             )
             for episode in self._api.episodes(series_id):
-                if episode[SEASON_KEY] is None or episode[EPISODE_KEY] is None:
+                invalid = any((
+                    episode[SEASON_KEY] is None,
+                    episode[EPISODE_KEY] is None,
+                    not episode['firstAired'],
+                ))
+                if invalid:
                     continue
                 season_number = int(episode[SEASON_KEY])
                 episode_number = int(episode[EPISODE_KEY])
-                if not episode['firstAired']:
-                    key = (season_number, episode_number)
-                    if key in current_episodes:
-                        removed_episodes.append(current_episodes[key])
-                    continue
+                key = (season_number, episode_number)
+                tvdb_episodes.add(key)
                 self._insert_update(
                     cursor=cursor,
                     table='episode',
@@ -244,6 +245,11 @@ class ShowDatabase(object):
                     air_date=datetime.datetime.strptime(episode['firstAired'], '%Y-%m-%d').date(),
                     overview=episode['overview'],
                 )
+            removed_episodes = [
+                episode
+                for key, episode in current_episodes.items()
+                if key not in tvdb_episodes
+            ]
             cursor.executemany(DELETE_EPISODE, removed_episodes)
 
         self._connection.commit()

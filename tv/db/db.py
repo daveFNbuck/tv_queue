@@ -149,7 +149,7 @@ def decode_air_time(airtime):
             return datetime.datetime.strptime(airtime, pattern).time()
         except ValueError:
             pass
-    raise ValueError('Cannot decode time string "{}"'.format(airtime))
+    return decode_air_time(None)
 
 
 class ShowDatabase(object):

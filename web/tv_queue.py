@@ -76,7 +76,11 @@ def login(username):
 @app.route('/search')
 def search():
     query = request.args['q']
-    results = get_api().search(query) if query else []
+    try:
+        results = get_api().search(query) if query else []
+    except BaseException as e:
+        print(str(e))
+        return render_template('search_failure.html')
     subscribed_series_ids = set(SHOW_DB.get_subscription_series_ids(user_id()))
     for result in results:
         result['subscribed'] = result['id'] in subscribed_series_ids

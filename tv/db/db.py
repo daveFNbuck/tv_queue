@@ -153,14 +153,16 @@ def decode_air_time(airtime):
 
 
 class ShowDatabase(object):
+    _closed = True
+
     def __init__(self, api=None):
         if api is None:
             api = tvdb.api.TvDbApi()
         self._api = api
         with open(_CREDENTIALS_FILE) as cred_fobj:
             credentials = json.load(cred_fobj)
-        self._closed = False
         self._connection = pymysql.connect(**credentials)
+        self._closed = False
         self._unseen_cache = {}
 
     def clear_cache(self):

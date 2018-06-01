@@ -255,6 +255,7 @@ class ShowDatabase(object):
             cursor.executemany(DELETE_EPISODE, removed_episodes)
 
         self._connection.commit()
+        return series['seriesName']
 
     def update_all_series(self, force=False):
         if force:
@@ -273,10 +274,11 @@ class ShowDatabase(object):
             ]
         for series_id in series_ids:
             try:
-                self.update_series(series_id, force)
-                print('Updated series {}'.format(series_id))
+                series_name = self.update_series(series_id, force)
             except Exception as e:
                 print('Cannot update series {}: {}'.format(series_id, e))
+            else:
+                print('Updated series {name} [{id}]'.format(id=series_id, name=series_name))
 
     def subscribe(self, user_id, series_id):
         self.update_series(series_id)
